@@ -38,9 +38,15 @@ public class Node
     }
 }
 
-
 public class Test : MonoBehaviour
 {
+    [SerializeField]
+    [Tooltip("플레이어 감지 범위")]
+    private int sensingRange;
+
+    [Tooltip("현재 감지한 플레이어 오브젝트")]
+    private GameObject detectedPObj;
+
     public Vector2Int bottomLeft, topRight, startPos, targetPos;
     public List<Node> finalNodeList;
 
@@ -59,9 +65,7 @@ public class Test : MonoBehaviour
     /// </summary>
     public void PathFinding()
     {
-        sizeX = topRight.x - bottomLeft.x + 1;
-        sizeY = topRight.y - bottomLeft.y + 1;
-        nodeArray = new Node[sizeX, sizeY];
+        nodeArray = new Node[101, 101];
 
         for (int i = 0; i < sizeX; i++)
         {
@@ -69,7 +73,7 @@ public class Test : MonoBehaviour
             {
                 bool isWall = false;
 
-                foreach (Collider2D collider in Physics2D.OverlapCircleAll(new Vector2(i + bottomLeft.x, j + bottomLeft.y), 0.4f))
+                foreach (Collider2D collider in Physics2D.OverlapCircleAll(new Vector2(i + -50, j + -50), 0.45f))
                 {
                     if (collider.gameObject.CompareTag("Wall"))
                     {
@@ -77,10 +81,9 @@ public class Test : MonoBehaviour
                     }
                 }
 
-                nodeArray[i, j] = new Node(isWall, i + bottomLeft.x, j + bottomLeft.y);
+                nodeArray[i, j] = new Node(isWall, i - 50, j - 50);
             }
         }
-
 
         // 시작과 끝 노드, 열린리스트와 닫힌리스트, 마지막리스트 초기화
         startNode = nodeArray[startPos.x - bottomLeft.x, startPos.y - bottomLeft.y];
