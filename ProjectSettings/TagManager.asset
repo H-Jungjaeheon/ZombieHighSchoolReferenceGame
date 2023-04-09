@@ -3,12 +3,17 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - JoyStickUpArea
+  - JoyStickDownArea
+  - JoyStickLeftArea
+  - JoyStickRightArea
+  - Wall
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - JoyStickArea
   - Water
   - UI
   - 

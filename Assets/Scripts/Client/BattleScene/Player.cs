@@ -5,7 +5,7 @@ using UnityEngine;
 public enum CurState
 {
     Idle,
-    Move
+    Moving
 }
 
 public class Player : MonoBehaviour
@@ -18,6 +18,18 @@ public class Player : MonoBehaviour
     [Tooltip("현재 플레이어 상태")]
     public CurState curState;
 
+    [Tooltip("현재 변경된 조이스틱 상태")]
+    private MoveState changePressState;
+
+    [Tooltip("이동 연산에 사용될 Vector")]
+    private Vector3 moveVector;
+
+    [Tooltip("이동 종료 시 멈출 위치")]
+    private Vector3 endPos;
+
+    [Tooltip("현재 이동 경로 변경할지 판별")]
+    private bool isChangeDir;
+
     /// <summary>
     /// 움직임 함수
     /// </summary>
@@ -25,45 +37,70 @@ public class Player : MonoBehaviour
     /// <returns></returns>
     public IEnumerator Move(MoveState curMoveState)
     {
-        Vector3 targetPos;
+        moveVector = Vector3.zero;
 
-        float maxSec = 0.35f;
-        float curSec = 0f;
+        if (curMoveState == MoveState.Up || curMoveState == MoveState.Down)
+        {
+            moveVector.y = (curMoveState == MoveState.Up) ? 1f : -1f;
+        }
+        else
+        {
+            moveVector.x = (curMoveState == MoveState.Right) ? 1f : -1f;
+        }
 
         while (true)
         {
-            targetPos = Vector3.zero;
+            transform.position += moveVector * Time.deltaTime * speed;
 
-            if (curMoveState == MoveState.Up || curMoveState == MoveState.Down)
+            if (!Input.GetMouseButton(0) || isChangeDir)
             {
-                targetPos.y = (curMoveState == MoveState.Up) ? 1f : -1f;
+                endPos = transform.position + moveVector;
+
+                if (curMoveState == MoveState.Up || curMoveState == MoveState.Down)
+                {
+                    endPos.y = Mathf.FloorToInt(endPos.y);
+                    
+                    if (curMoveState == MoveState.Down)
+                    {
+                        endPos.y += 1;   
+                    }
+                }
+                else
+                {
+                    endPos.x = Mathf.FloorToInt(endPos.x);
+
+                    if (curMoveState == MoveState.Left)
+                    {
+                        endPos.x += 1;
+                    }
+                }
+
+                while ((curMoveState == MoveState.Up && transform.position.y <= endPos.y) ||
+                       (curMoveState == MoveState.Down && transform.position.y >= endPos.y) ||
+                       (curMoveState == MoveState.Right && transform.position.x <= endPos.x) ||
+                       (curMoveState == MoveState.Left && transform.position.x >= endPos.x))
+                {
+                    transform.position += moveVector * Time.deltaTime * speed;
+
+                    yield return null;
+                }
+
+                transform.position = endPos;
+
+                if (isChangeDir)
+                {
+                    StartCoroutine(Move(changePressState));
+                }
+                else
+                {
+                    curState = CurState.Idle;
+                }
+                
+                yield break;
             }
-            else
-            {
-                targetPos.x = (curMoveState == MoveState.Right) ? 1f : -1f;
-            }
 
-            targetPos += transform.position;
-
-            while (curSec <= maxSec)
-            {
-                transform.position = Vector3.Lerp(transform.position, targetPos, curSec / maxSec);
-
-                curSec += Time.deltaTime * speed;
-
-                yield return null;
-            }
-
-            curSec = 0;
-
-            if (!Input.GetMouseButton(0)) 
-            {
-                print("실행");
-                break;
-            }
+            yield return null;
         }
-
-        curState = CurState.Idle;
 
         //curMousePos = mainCam.ScreenToWorldPoint(Input.mousePosition);
 
@@ -77,9 +114,13 @@ public class Player : MonoBehaviour
         //}
     }
 
-    public void ClickMoveBtn()
+    /// <summary>
+    /// 조이스틱 방향 바꿀 시 실행하는 함수
+    /// </summary>
+    public void ChangeMoveDirection(MoveState curChangeMoveState)
     {
-        
+        isChangeDir = true;
+        changePressState = curChangeMoveState;
     }
 
 }

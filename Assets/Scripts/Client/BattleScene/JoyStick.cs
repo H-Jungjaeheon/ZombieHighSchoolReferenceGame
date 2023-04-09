@@ -13,7 +13,6 @@ public enum MoveState
 
 public class JoyStick : MonoBehaviour
 {
-
     [Tooltip("전투 씬의 메인 카메라 Camera 컴포넌트")]
     private Camera mainCam;
 
@@ -29,6 +28,8 @@ public class JoyStick : MonoBehaviour
     [SerializeField]
     [Tooltip("Player 컴포넌트")]
     private Player player;
+
+    private RaycastHit hit;
 
     void Start()
     {
@@ -51,9 +52,9 @@ public class JoyStick : MonoBehaviour
     /// <param name="moveStateIndex"></param>
     public void JoyStickTouchStart(int moveStateIndex)
     {
-        if (player.curState != CurState.Move)
+        if (player.curState != CurState.Moving)
         {
-            player.curState = CurState.Move;
+            player.curState = CurState.Moving;
 
             curPressState = (MoveState)moveStateIndex;
 
@@ -69,8 +70,33 @@ public class JoyStick : MonoBehaviour
     /// <returns></returns>
     private IEnumerator UpdateClickBtn()
     {
-        while (player.curState == CurState.Move)
+        Ray raycast;
+
+        while (player.curState == CurState.Moving)
         {
+            raycast = Camera.main.ScreenPointToRay(Input.mousePosition);
+            print(raycast);
+            if (Physics.Raycast(raycast, out hit, LayerMask.GetMask("JoyStickArea")))
+            {
+                if (hit.collider.CompareTag("JoyStickUpArea") && curPressState != MoveState.Up)
+                {
+                    curPressState = MoveState.Up;
+                }
+                else if (hit.collider.CompareTag("JoyStickDownArea") && curPressState != MoveState.Down)
+                {
+                    curPressState = MoveState.Down;
+                }
+                else if (hit.collider.CompareTag("JoyStickLeftArea") && curPressState != MoveState.Left)
+                {
+                    curPressState = MoveState.Left;
+                }
+                else if (hit.collider.CompareTag("JoyStickRightArea") && curPressState != MoveState.Right)
+                {
+                    curPressState = MoveState.Right;
+                }
+
+                player.ChangeMoveDirection(curPressState);
+            }
 
             yield return null;
         }
