@@ -6,30 +6,40 @@ using UnityEngine;
 [System.Serializable]
 public class Node
 {
-    public Node(bool _isWall, int _x, int _y)
+    /// <summary>
+    /// 노드 생성자
+    /// </summary>
+    /// <param name="_isWall"> 현재 벽인지 판별 </param>
+    /// <param name="x"> 노드의 x 포지션 </param>
+    /// <param name="y"> 노드의 y 포지션 </param>
+    public Node(bool _isWall, int x, int y)
     {
         isWall = _isWall;
 
-        x = _x;
+        xPos = x;
 
-        y = _y;
+        yPos = y;
     }
 
+    [Tooltip("현재 노드가 벽인지 판별")]
     public bool isWall;
+    
+    [Tooltip("현재 노드의 부모 노드(이전 노드)")]
     public Node ParentNode;
 
-    // G : 시작으로부터 이동했던 거리, H : |가로|+|세로| 장애물 무시하여 목표까지의 거리, F : G + H
     [Tooltip("현재 노드의 X 포지션")]
-    public int x;
+    public int xPos;
 
     [Tooltip("현재 노드의 Y 포지션")]
-    public int y;
+    public int yPos;
 
+    [Tooltip("시작으로부터 이동한 거리")]
     public int g;
 
+    [Tooltip("장애물을 무시한 목표까지의 거리 (가로, 세로)")]
     public int h;
-
-    public int f
+    
+    public int f //g + h
     {
         get
         {
@@ -95,14 +105,13 @@ public class Test : MonoBehaviour
                     }
                 }
 
-                nodeArray[i + 50, j + 50] = new Node(isWall, (int)startPos.x + i, (int)startPos.y + j);
+                nodeArray[i + updateDetectedRange, j + updateDetectedRange] = new Node(isWall, (int)startPos.x + i, (int)startPos.y + j);
             }
         }
 
-        // 시작과 끝 노드 재설정, 오픈 리스트, 클로즈 리스트, 최종 경로 리스트 초기화
-        startNode = nodeArray[50, 50];
+        startNode = nodeArray[updateDetectedRange, updateDetectedRange];
 
-        targetNode = nodeArray[(int)targetPos.x - (int)startPos.x + 50, (int)targetPos.y - (int)startPos.y + 50];
+        targetNode = nodeArray[(int)targetPos.x - (int)startPos.x + updateDetectedRange, (int)targetPos.y - (int)startPos.y + updateDetectedRange];
 
         closedList.Clear();
 
@@ -114,19 +123,19 @@ public class Test : MonoBehaviour
 
         while (openList.Count > 0)
         {
-            // 열린리스트 중 가장 F가 작고 F가 같다면 H가 작은 걸 현재노드로 하고 열린리스트에서 닫힌리스트로 옮기기
+            // 오픈리스트 중 가장 f가 작은 것, f가 같다면 h가 작은 것, h도 같다면 0번째 것을 현재노드로 하고 열린리스트에서 닫힌리스트로 옮기기
             curNode = openList[0];
 
-            for (int i = 1; i < openList.Count; i++)
+            openList.Remove(curNode);
+            closedList.Add(curNode);
+
+            for (int i = 0; i < openList.Count; i++)
             {
                 if (openList[i].f <= curNode.f && openList[i].h < curNode.h)
                 {
                     curNode = openList[i];
                 }
             }
-
-            openList.Remove(curNode);
-            closedList.Add(curNode);
 
             // 마지막
             if (curNode == targetNode)
@@ -144,37 +153,45 @@ public class Test : MonoBehaviour
 
                 for (int i = 0; i < finalNodeList.Count; i++)
                 {
-                    print(i + "번째는 " + finalNodeList[i].x + ", " + finalNodeList[i].y);
+                    print(i + "번째는 " + finalNodeList[i].xPos + ", " + finalNodeList[i].yPos);
                 }
 
                 return;
             }
 
             // ↑ → ↓ ←
-            OpenListAdd(curNode.x, curNode.y + 1);
-            OpenListAdd(curNode.x + 1, curNode.y);
-            OpenListAdd(curNode.x, curNode.y - 1);
-            OpenListAdd(curNode.x - 1, curNode.y);
+            OpenListAdd(curNode.xPos, curNode.yPos + 1);
+            OpenListAdd(curNode.xPos + 1, curNode.yPos);
+            OpenListAdd(curNode.xPos, curNode.yPos - 1);
+            OpenListAdd(curNode.xPos - 1, curNode.yPos);
         }
     }
 
-    void OpenListAdd(int checkX, int checkY)
+    /// <summary>
+    /// 진행 가능한 경로의 노드들 오픈리스트 추가 함수
+    /// </summary>
+    /// <param name="checkX"></param>
+    /// <param name="checkY"></param>
+    private void OpenListAdd(int checkX, int checkY)
     {
-        // 상하좌우 범위를 벗어나지 않고, 벽이 아니면서, 닫힌리스트에 없다면
-        if (checkX >= -updateDetectedRange && checkX < updateDetectedRange + 1 && checkY >= -updateDetectedRange && checkY < updateDetectedRange + 1 && !nodeArray[checkX + updateDetectedRange, checkY + updateDetectedRange].isWall && !closedList.Contains(nodeArray[checkX + updateDetectedRange, checkY + updateDetectedRange]))
+        //감지 범위를 벗어나지 않고, 벽이 아니면서, 닫힌리스트에 없다면
+        if (checkX >= startPos.x - updateDetectedRange && checkX <= startPos.x + updateDetectedRange 
+            && checkY >= startPos.y - updateDetectedRange && checkY <= startPos.y + updateDetectedRange
+            && nodeArray[(int)(checkX - startPos.x) + updateDetectedRange, (int)(checkY - startPos.y) + updateDetectedRange].isWall == false 
+            && closedList.Contains(nodeArray[(int)(checkX - startPos.x) + updateDetectedRange, (int)(checkY - startPos.y) + updateDetectedRange]) == false)
         {
-            // 이웃노드에 넣고, 직선은 10, 대각선은 14비용
-            Node NeighborNode = nodeArray[checkX + updateDetectedRange, checkY + updateDetectedRange];
-            int MoveCost = 10;
+            // 이웃노드에 넣기
+            Node neighborNode = nodeArray[(int)(checkX - startPos.x) + updateDetectedRange, (int)(checkY - startPos.y) + updateDetectedRange];
+            int moveCost = 10;
 
-            // 이동비용이 이웃노드G보다 작거나 또는 열린리스트에 이웃노드가 없다면 G, H, ParentNode를 설정 후 열린리스트에 추가
-            if (MoveCost < NeighborNode.g || !openList.Contains(NeighborNode))
+            // 이동비용이 이웃노드 g보다 작거나 또는 열린리스트에 이웃노드가 없다면 g, h, ParentNode를 설정 후 열린리스트에 추가
+            if (moveCost < neighborNode.g || openList.Contains(neighborNode) == false)
             {
-                NeighborNode.g = MoveCost;
-                NeighborNode.h = (Mathf.Abs(NeighborNode.x - targetNode.x) + Mathf.Abs(NeighborNode.y - targetNode.y)) * 10;
-                NeighborNode.ParentNode = curNode;
+                neighborNode.g = moveCost;
+                neighborNode.h = (Mathf.Abs(neighborNode.xPos - targetNode.xPos) + Mathf.Abs(neighborNode.yPos - targetNode.yPos)) * 10;
+                neighborNode.ParentNode = curNode;
 
-                openList.Add(NeighborNode);
+                openList.Add(neighborNode);
             }
         }
     }
@@ -185,7 +202,7 @@ public class Test : MonoBehaviour
         {
             for (int i = 0; i < finalNodeList.Count - 1; i++)
             {
-                Gizmos.DrawLine(new Vector2(finalNodeList[i].x, finalNodeList[i].y), new Vector2(finalNodeList[i + 1].x, finalNodeList[i + 1].y));
+                Gizmos.DrawLine(new Vector2(finalNodeList[i].xPos, finalNodeList[i].yPos), new Vector2(finalNodeList[i + 1].xPos, finalNodeList[i + 1].yPos));
             }
         }
     }
