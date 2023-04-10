@@ -9,6 +9,7 @@ TagManager:
   - JoyStickLeftArea
   - JoyStickRightArea
   - Wall
+  - Enemy
   layers:
   - Default
   - TransparentFX

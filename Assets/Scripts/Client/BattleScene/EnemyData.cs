@@ -50,4 +50,16 @@ public class EnemyData : ScriptableObject
             return speed;
         }
     }
+
+    [SerializeField]
+    [Tooltip("Á¡¼ö")]
+    private float score;
+
+    public float Score
+    {
+        get
+        {
+            return score;
+        }
+    }
 }
