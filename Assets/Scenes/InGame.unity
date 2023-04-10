@@ -2632,10 +2632,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sensingRange: 0
-  bottomLeft: {x: -10, y: -10}
-  topRight: {x: 10, y: 10}
-  startPos: {x: 0, y: 0}
-  targetPos: {x: 0, y: -2}
+  targetPos: {x: 0, y: 0}
   finalNodeList: []
 --- !u!1 &1679614279
 GameObject:
