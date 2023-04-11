@@ -21,6 +21,9 @@ public class Player : MonoBehaviour
     [Tooltip("현재 변경된 조이스틱 상태")]
     private MoveState changePressState;
 
+    [Tooltip("이동시 미리 도달할 기준 좌표")]
+    public Vector2 moveTargetPos;
+
     [Tooltip("이동 연산에 사용될 Vector")]
     private Vector3 moveVector;
 
@@ -50,7 +53,9 @@ public class Player : MonoBehaviour
 
         while (true)
         {
-            transform.position += moveVector * Time.deltaTime * speed;
+            transform.Translate(moveVector * Time.deltaTime * speed);
+
+            TargetPosRoundsSetting();
 
             if (!Input.GetMouseButton(0) || isChangeDir)
             {
@@ -80,7 +85,9 @@ public class Player : MonoBehaviour
                        (curMoveState == MoveState.Right && transform.position.x <= endPos.x) ||
                        (curMoveState == MoveState.Left && transform.position.x >= endPos.x))
                 {
-                    transform.position += moveVector * Time.deltaTime * speed;
+                    transform.Translate(moveVector * Time.deltaTime * speed);
+
+                    TargetPosRoundsSetting();
 
                     yield return null;
                 }
@@ -112,6 +119,13 @@ public class Player : MonoBehaviour
         //{
         //    //RaycastHit2D hit = Physics2D.Raycast()
         //}
+    }
+
+    private void TargetPosRoundsSetting()
+    {
+        moveTargetPos.x = Mathf.RoundToInt(transform.position.x);
+
+        moveTargetPos.y = Mathf.RoundToInt(transform.position.y);
     }
 
     /// <summary>

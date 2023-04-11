@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 [System.Serializable]
 public class Node
 {
@@ -23,7 +22,7 @@ public class Node
 
     [Tooltip("현재 노드가 벽인지 판별")]
     public bool isWall;
-    
+
     [Tooltip("현재 노드의 부모 노드(이전 노드)")]
     public Node ParentNode;
 
@@ -38,7 +37,7 @@ public class Node
 
     [Tooltip("장애물을 무시한 목표까지의 거리 (가로, 세로)")]
     public int h;
-    
+
     public int f //g + h
     {
         get
@@ -47,15 +46,13 @@ public class Node
         }
     }
 }
-
-public class Test : MonoBehaviour
+public class BasicEnemy : MonoBehaviour
 {
-    [SerializeField]
-    [Tooltip("추격 전 플레이어 감지 범위")]
-    private int sensingRange;
-
     [Tooltip("현재 감지한 플레이어 오브젝트")]
     private GameObject detectedPObj;
+
+    #region 이동 관련 요소들 모음
+    [Header("이동 관련 요소들 모음")]
 
     [Tooltip("추격 후 플레이어 감지 범위")]
     private const int updateDetectedRange = 50;
@@ -66,28 +63,47 @@ public class Test : MonoBehaviour
     [Tooltip("경로 탐색 시 시작 포지션")]
     private Vector2 startPos;
 
-    [Tooltip("경로 탐색 시 목표 포지션")]
-    public Vector2 targetPos;
-
+    [Tooltip("최종 경로 노드 리스트")]
     public List<Node> finalNodeList;
 
-    Node[,] nodeArray = new Node[101, 101];
+    [Tooltip("전체 경로 범위 노드 배열")]
+    private Node[,] nodeArray = new Node[updateDetectedRange * 2 + 1, updateDetectedRange * 2 + 1];
 
-    Node startNode, targetNode, curNode;
+    [Tooltip("경로 시작 노드")]
+    private Node startNode;
 
-    List<Node> openList = new List<Node>();
+    [Tooltip("목적지 노드")]
+    private Node targetNode;
 
-    List<Node> closedList = new List<Node>();
+    [Tooltip("현재 경로 노드")]
+    private Node curNode;
 
-    private void Start()
+    [Tooltip("경로 탐색 가능한 노드 리스트")]
+    private List<Node> openList = new List<Node>();
+
+    [Tooltip("경로 탐색 완료한 노드 리스트")]
+    private List<Node> closedList = new List<Node>();
+    #endregion
+
+    /// <summary>
+    /// 플레이어 감지 시작
+    /// </summary>
+    public virtual void DetectedPlayer(GameObject detectedPlayerObj)
     {
-        PathFinding();
+        if (detectedPObj != null)
+        {
+            return;
+        }
+
+        detectedPObj = detectedPlayerObj;
+
+        PathFinding(detectedPlayerObj.transform.position);
     }
 
     /// <summary>
     /// 경로 탐색 함수
     /// </summary>
-    public void PathFinding()
+    public void PathFinding(Vector2 targetPos)
     {
         startPos = new Vector2(transform.position.x, transform.position.y);
 
@@ -151,10 +167,12 @@ public class Test : MonoBehaviour
                 finalNodeList.Add(startNode);
                 finalNodeList.Reverse();
 
-                for (int i = 0; i < finalNodeList.Count; i++)
-                {
-                    print(i + "번째는 " + finalNodeList[i].xPos + ", " + finalNodeList[i].yPos);
-                }
+                //for (int i = 0; i < finalNodeList.Count; i++)
+                //{
+                //    print(i + "번째는 " + finalNodeList[i].xPos + ", " + finalNodeList[i].yPos);
+                //}
+
+                StartCoroutine(Move());
 
                 return;
             }
@@ -175,9 +193,9 @@ public class Test : MonoBehaviour
     private void OpenListAdd(int checkX, int checkY)
     {
         //감지 범위를 벗어나지 않고, 벽이 아니면서, 닫힌리스트에 없다면
-        if (checkX >= startPos.x - updateDetectedRange && checkX <= startPos.x + updateDetectedRange 
+        if (checkX >= startPos.x - updateDetectedRange && checkX <= startPos.x + updateDetectedRange
             && checkY >= startPos.y - updateDetectedRange && checkY <= startPos.y + updateDetectedRange
-            && nodeArray[(int)(checkX - startPos.x) + updateDetectedRange, (int)(checkY - startPos.y) + updateDetectedRange].isWall == false 
+            && nodeArray[(int)(checkX - startPos.x) + updateDetectedRange, (int)(checkY - startPos.y) + updateDetectedRange].isWall == false
             && closedList.Contains(nodeArray[(int)(checkX - startPos.x) + updateDetectedRange, (int)(checkY - startPos.y) + updateDetectedRange]) == false)
         {
             // 이웃노드에 넣기
@@ -194,6 +212,100 @@ public class Test : MonoBehaviour
                 openList.Add(neighborNode);
             }
         }
+    }
+
+    /// <summary>
+    /// 움직임 함수
+    /// </summary>
+    /// <param name="curMoveState"> 현재 이동 목표 상태 </param>
+    /// <returns></returns>
+    public IEnumerator Move() //MoveState curMoveState
+    {
+        //moveVector = Vector3.zero;
+
+        //if (curMoveState == MoveState.Up || curMoveState == MoveState.Down)
+        //{
+        //    moveVector.y = (curMoveState == MoveState.Up) ? 1f : -1f;
+        //}
+        //else
+        //{
+        //    moveVector.x = (curMoveState == MoveState.Right) ? 1f : -1f;
+        //}
+
+        //while (true)
+        //{
+        //    transform.position += moveVector * Time.deltaTime * speed;
+
+        //    if (curMoveState == MoveState.Up || curMoveState == MoveState.Down)
+        //    {
+        //        moveTargetPos.y = Mathf.FloorToInt(transform.position.y);
+        //    }
+        //    else
+        //    {
+        //        moveTargetPos.x = Mathf.FloorToInt(transform.position.x);
+        //    }
+
+        //    if (!Input.GetMouseButton(0) || isChangeDir)
+        //    {
+        //        endPos = transform.position + moveVector;
+
+        //        if (curMoveState == MoveState.Up || curMoveState == MoveState.Down)
+        //        {
+        //            endPos.y = Mathf.FloorToInt(endPos.y);
+
+        //            if (curMoveState == MoveState.Down)
+        //            {
+        //                endPos.y += 1;
+        //            }
+        //        }
+        //        else
+        //        {
+        //            endPos.x = Mathf.FloorToInt(endPos.x);
+
+        //            if (curMoveState == MoveState.Left)
+        //            {
+        //                endPos.x += 1;
+        //            }
+        //        }
+
+        //        while ((curMoveState == MoveState.Up && transform.position.y <= endPos.y) ||
+        //               (curMoveState == MoveState.Down && transform.position.y >= endPos.y) ||
+        //               (curMoveState == MoveState.Right && transform.position.x <= endPos.x) ||
+        //               (curMoveState == MoveState.Left && transform.position.x >= endPos.x))
+        //        {
+        //            transform.position += moveVector * Time.deltaTime * speed;
+
+        //            yield return null;
+        //        }
+
+        //        transform.position = endPos;
+
+        //        if (isChangeDir)
+        //        {
+        //            StartCoroutine(Move(changePressState));
+        //        }
+        //        else
+        //        {
+        //            curState = CurState.Idle;
+        //        }
+
+        //        yield break;
+        //    }
+
+        //    yield return null;
+        //}
+
+        //curMousePos = mainCam.ScreenToWorldPoint(Input.mousePosition);
+
+        //if (curMousePos.x > -8f && curMousePos.x > -9.8f)
+        //{
+
+        //}
+        //while (true)
+        //{
+        //    //RaycastHit2D hit = Physics2D.Raycast()
+        //}
+        yield return null;
     }
 
     void OnDrawGizmos()
