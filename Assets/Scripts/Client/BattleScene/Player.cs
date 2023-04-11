@@ -25,7 +25,7 @@ public class Player : MonoBehaviour
     public Vector2 moveTargetPos;
 
     [Tooltip("이동 연산에 사용될 Vector")]
-    private Vector3 moveVector;
+    private Vector2 moveVector;
 
     [Tooltip("이동 종료 시 멈출 위치")]
     private Vector3 endPos;
@@ -59,7 +59,7 @@ public class Player : MonoBehaviour
 
             if (!Input.GetMouseButton(0) || isChangeDir)
             {
-                endPos = transform.position + moveVector;
+                endPos = transform.position + (Vector3)moveVector;
 
                 if (curMoveState == MoveState.Up || curMoveState == MoveState.Down)
                 {
@@ -80,19 +80,23 @@ public class Player : MonoBehaviour
                     }
                 }
 
+                //moveTargetPos += moveVector;
+
                 while ((curMoveState == MoveState.Up && transform.position.y <= endPos.y) ||
                        (curMoveState == MoveState.Down && transform.position.y >= endPos.y) ||
                        (curMoveState == MoveState.Right && transform.position.x <= endPos.x) ||
                        (curMoveState == MoveState.Left && transform.position.x >= endPos.x))
                 {
                     transform.Translate(moveVector * Time.deltaTime * speed);
-
+                    
                     TargetPosRoundsSetting();
 
                     yield return null;
                 }
 
+
                 transform.position = endPos;
+                TargetPosRoundsSetting();
 
                 if (isChangeDir)
                 {
@@ -123,9 +127,8 @@ public class Player : MonoBehaviour
 
     private void TargetPosRoundsSetting()
     {
-        moveTargetPos.x = Mathf.RoundToInt(transform.position.x);
-
-        moveTargetPos.y = Mathf.RoundToInt(transform.position.y);
+        moveTargetPos.x = Mathf.Ceil(transform.position.x);
+        moveTargetPos.y = Mathf.Ceil(transform.position.y);
     }
 
     /// <summary>

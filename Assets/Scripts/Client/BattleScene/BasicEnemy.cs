@@ -48,6 +48,11 @@ public class Node
 }
 public class BasicEnemy : MonoBehaviour
 {
+    [SerializeField]
+    [Tooltip("기본 적 정보(ScriptableObject)")]
+    private EnemyData enemyData;
+
+    [SerializeField]
     [Tooltip("현재 감지한 플레이어 오브젝트")]
     private GameObject detectedPObj;
 
@@ -62,6 +67,9 @@ public class BasicEnemy : MonoBehaviour
 
     [Tooltip("경로 탐색 시 시작 포지션")]
     private Vector2 startPos;
+
+    [Tooltip("경로 탐색 시 목표 포지션")]
+    private Vector2 targetPos;
 
     [Tooltip("최종 경로 노드 리스트")]
     public List<Node> finalNodeList;
@@ -97,16 +105,17 @@ public class BasicEnemy : MonoBehaviour
 
         detectedPObj = detectedPlayerObj;
 
-        PathFinding(detectedPlayerObj.transform.position);
+        PathFinding();
     }
 
     /// <summary>
     /// 경로 탐색 함수
     /// </summary>
-    public void PathFinding(Vector2 targetPos)
+    public void PathFinding()
     {
         startPos = new Vector2(transform.position.x, transform.position.y);
-
+        targetPos = detectedPObj.GetComponent<Player>().moveTargetPos;
+        
         for (int i = -updateDetectedRange; i <= updateDetectedRange; i++) //플레이어 추격 범위만큼 노드 세팅
         {
             for (int j = -updateDetectedRange; j <= updateDetectedRange; j++)
@@ -129,14 +138,14 @@ public class BasicEnemy : MonoBehaviour
 
         targetNode = nodeArray[(int)targetPos.x - (int)startPos.x + updateDetectedRange, (int)targetPos.y - (int)startPos.y + updateDetectedRange];
 
-        closedList.Clear();
-
-        finalNodeList.Clear();
-
         openList.Clear();
 
         openList.Add(startNode);
 
+        closedList.Clear();
+
+        finalNodeList.Clear();
+        
         while (openList.Count > 0)
         {
             // 오픈리스트 중 가장 f가 작은 것, f가 같다면 h가 작은 것, h도 같다면 0번째 것을 현재노드로 하고 열린리스트에서 닫힌리스트로 옮기기
@@ -221,91 +230,32 @@ public class BasicEnemy : MonoBehaviour
     /// <returns></returns>
     public IEnumerator Move() //MoveState curMoveState
     {
-        //moveVector = Vector3.zero;
+        Vector2 curTargetPos;
 
-        //if (curMoveState == MoveState.Up || curMoveState == MoveState.Down)
-        //{
-        //    moveVector.y = (curMoveState == MoveState.Up) ? 1f : -1f;
-        //}
-        //else
-        //{
-        //    moveVector.x = (curMoveState == MoveState.Right) ? 1f : -1f;
-        //}
+        for (int nowIndex = 0; nowIndex < finalNodeList.Count; nowIndex++)
+        {
+            curTargetPos.x = finalNodeList[nowIndex].xPos;
+            curTargetPos.y = finalNodeList[nowIndex].yPos;
 
-        //while (true)
-        //{
-        //    transform.position += moveVector * Time.deltaTime * speed;
+            while (true)
+            {
+                if (transform.position.x == curTargetPos.x && transform.position.y == curTargetPos.y)
+                {
+                    break;
+                }
 
-        //    if (curMoveState == MoveState.Up || curMoveState == MoveState.Down)
-        //    {
-        //        moveTargetPos.y = Mathf.FloorToInt(transform.position.y);
-        //    }
-        //    else
-        //    {
-        //        moveTargetPos.x = Mathf.FloorToInt(transform.position.x);
-        //    }
+                transform.position = Vector3.MoveTowards(transform.position, curTargetPos, Time.deltaTime * enemyData.Speed);
 
-        //    if (!Input.GetMouseButton(0) || isChangeDir)
-        //    {
-        //        endPos = transform.position + moveVector;
+                yield return null;
+            }
 
-        //        if (curMoveState == MoveState.Up || curMoveState == MoveState.Down)
-        //        {
-        //            endPos.y = Mathf.FloorToInt(endPos.y);
+            if (detectedPObj.GetComponent<Player>().moveTargetPos != targetPos)
+            {
+                PathFinding();
 
-        //            if (curMoveState == MoveState.Down)
-        //            {
-        //                endPos.y += 1;
-        //            }
-        //        }
-        //        else
-        //        {
-        //            endPos.x = Mathf.FloorToInt(endPos.x);
-
-        //            if (curMoveState == MoveState.Left)
-        //            {
-        //                endPos.x += 1;
-        //            }
-        //        }
-
-        //        while ((curMoveState == MoveState.Up && transform.position.y <= endPos.y) ||
-        //               (curMoveState == MoveState.Down && transform.position.y >= endPos.y) ||
-        //               (curMoveState == MoveState.Right && transform.position.x <= endPos.x) ||
-        //               (curMoveState == MoveState.Left && transform.position.x >= endPos.x))
-        //        {
-        //            transform.position += moveVector * Time.deltaTime * speed;
-
-        //            yield return null;
-        //        }
-
-        //        transform.position = endPos;
-
-        //        if (isChangeDir)
-        //        {
-        //            StartCoroutine(Move(changePressState));
-        //        }
-        //        else
-        //        {
-        //            curState = CurState.Idle;
-        //        }
-
-        //        yield break;
-        //    }
-
-        //    yield return null;
-        //}
-
-        //curMousePos = mainCam.ScreenToWorldPoint(Input.mousePosition);
-
-        //if (curMousePos.x > -8f && curMousePos.x > -9.8f)
-        //{
-
-        //}
-        //while (true)
-        //{
-        //    //RaycastHit2D hit = Physics2D.Raycast()
-        //}
-        yield return null;
+                yield break;
+            }
+        }
     }
 
     void OnDrawGizmos()

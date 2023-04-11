@@ -16,6 +16,18 @@ public class EnemyData : ScriptableObject
     }
 
     [SerializeField]
+    [Tooltip("최대 체력")]
+    private int maxHp;
+
+    public int MaxHp
+    {
+        get
+        {
+            return maxHp;
+        }
+    }
+
+    [SerializeField]
     [Tooltip("체력")]
     private int hp;
 

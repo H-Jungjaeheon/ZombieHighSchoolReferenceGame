@@ -76,7 +76,7 @@ public class JoyStick : MonoBehaviour
         while (player.curState == CurState.Moving)
         {
             raycast = Camera.main.ScreenPointToRay(Input.mousePosition);
-            print(raycast);
+            //print(raycast);
             if (Physics.Raycast(raycast, out hit, LayerMask.GetMask("JoyStickArea")))
             {
                 if (hit.collider.CompareTag("JoyStickUpArea") && curPressState != MoveState.Up)
