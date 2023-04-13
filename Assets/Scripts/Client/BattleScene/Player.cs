@@ -80,8 +80,6 @@ public class Player : MonoBehaviour
                     }
                 }
 
-                //moveTargetPos += moveVector;
-
                 while ((curMoveState == MoveState.Up && transform.position.y <= endPos.y) ||
                        (curMoveState == MoveState.Down && transform.position.y >= endPos.y) ||
                        (curMoveState == MoveState.Right && transform.position.x <= endPos.x) ||
