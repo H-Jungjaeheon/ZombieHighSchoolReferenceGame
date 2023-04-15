@@ -17,6 +17,9 @@ public class DetectedRangeObj : MonoBehaviour
     [Tooltip("감지 범위 콜라이더 사이즈 Vector")]
     private Vector2 colliderSizeVec;
 
+    [Tooltip("플레이어 태그")]
+    private const string PLAYER = "Player";
+
     private void Start()
     {
         ColliderSizeSetting(sensingRange);
@@ -40,7 +43,7 @@ public class DetectedRangeObj : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player"))
+        if (collision.CompareTag(PLAYER))
         {
             basicEnemy.DetectedPlayer(collision.gameObject);
 

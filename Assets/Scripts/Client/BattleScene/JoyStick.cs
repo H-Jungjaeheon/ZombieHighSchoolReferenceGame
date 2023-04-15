@@ -1,10 +1,8 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public enum MoveState
 {
-    None,
     Up,
     Down,
     Left,
@@ -16,12 +14,6 @@ public class JoyStick : MonoBehaviour
     [Tooltip("전투 씬의 메인 카메라 Camera 컴포넌트")]
     private Camera mainCam;
 
-    [Tooltip("현재 터치(마우스) 포지션")]
-    private Vector3 curMousePos;
-
-    [Tooltip("목표 지점까지 이동하기 위해 더할 Vector")]
-    private Vector3 plusPos;
-
     [Tooltip("현재 누른 조이스틱 상태")]
     private MoveState curPressState;
 
@@ -29,7 +21,8 @@ public class JoyStick : MonoBehaviour
     [Tooltip("Player 컴포넌트")]
     private Player player;
 
-    private RaycastHit hit;
+    [Tooltip("마우스와 조이스틱 사이의 각도")]
+    private float joyStickAngle;
 
     void Start()
     {
@@ -42,10 +35,7 @@ public class JoyStick : MonoBehaviour
     private void StartSetting()
     {
         mainCam = Camera.main;
-
-
     }
-
 
     /// <summary>
     /// 이동 조이스틱 터치 시작 판별 함수
@@ -61,45 +51,53 @@ public class JoyStick : MonoBehaviour
 
             player.StartCoroutine(player.Move(curPressState));
 
-            StartCoroutine(UpdateClickBtn());
+            StartCoroutine(CheackAngle());
         }
     }
 
     /// <summary>
-    /// 눌린 조이스틱 버튼 업데이트 함수
+    /// 조이스틱, 마우스간의 각도 업데이트 함수
     /// </summary>
     /// <returns></returns>
-    private IEnumerator UpdateClickBtn()
+    private IEnumerator CheackAngle()
     {
-        Ray raycast;
-
-        while (player.curState == CurState.Moving)
+        while (Input.GetMouseButton(0))
         {
-            raycast = Camera.main.ScreenPointToRay(Input.mousePosition);
-            //print(raycast);
-            if (Physics.Raycast(raycast, out hit, LayerMask.GetMask("JoyStickArea")))
-            {
-                if (hit.collider.CompareTag("JoyStickUpArea") && curPressState != MoveState.Up)
-                {
-                    curPressState = MoveState.Up;
-                }
-                else if (hit.collider.CompareTag("JoyStickDownArea") && curPressState != MoveState.Down)
-                {
-                    curPressState = MoveState.Down;
-                }
-                else if (hit.collider.CompareTag("JoyStickLeftArea") && curPressState != MoveState.Left)
-                {
-                    curPressState = MoveState.Left;
-                }
-                else if (hit.collider.CompareTag("JoyStickRightArea") && curPressState != MoveState.Right)
-                {
-                    curPressState = MoveState.Right;
-                }
+            joyStickAngle = Mathf.Atan2(mainCam.ScreenToWorldPoint(Input.mousePosition).y - transform.position.y, mainCam.ScreenToWorldPoint(Input.mousePosition).x - transform.position.x) * Mathf.Rad2Deg;
 
-                player.ChangeMoveDirection(curPressState);
+            if (joyStickAngle < 0)
+            {
+                joyStickAngle += 360;
+            }
+
+            if (joyStickAngle >= 46f && joyStickAngle <= 135f && curPressState != MoveState.Up)
+            {
+                ChangePlayerMoveDirection(MoveState.Up);
+            }
+            else if (joyStickAngle >= 136f && joyStickAngle <= 225f && curPressState != MoveState.Left)
+            {
+                ChangePlayerMoveDirection(MoveState.Left);
+            }
+            else if (joyStickAngle >= 226f && joyStickAngle <= 315f && curPressState != MoveState.Down)
+            {
+                ChangePlayerMoveDirection(MoveState.Down);
+            }
+            else if ((joyStickAngle >= 316f || joyStickAngle <= 45f) && curPressState != MoveState.Right)
+            {
+                ChangePlayerMoveDirection(MoveState.Right);
             }
 
             yield return null;
         }
+    }
+
+    /// <summary>
+    /// 플레이어 이동중 이동 방향 바꾸는 함수
+    /// </summary>
+    /// <param name="changeMoveState"></param>
+    private void ChangePlayerMoveDirection(MoveState changeMoveState)
+    {
+        curPressState = changeMoveState;
+        player.ChangeMoveDirection(changeMoveState);
     }
 }

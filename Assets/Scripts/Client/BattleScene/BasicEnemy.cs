@@ -91,6 +91,9 @@ public class BasicEnemy : MonoBehaviour
 
     [Tooltip("경로 탐색 완료한 노드 리스트")]
     private List<Node> closedList = new List<Node>();
+
+    [Tooltip("벽 태그")]
+    private const string WALL = "Wall";
     #endregion
 
     /// <summary>
@@ -124,7 +127,7 @@ public class BasicEnemy : MonoBehaviour
 
                 foreach (Collider2D collider in Physics2D.OverlapCircleAll(new Vector2(startPos.x + i, startPos.y + j), 0.40f))
                 {
-                    if (collider.gameObject.CompareTag("Wall"))
+                    if (collider.gameObject.CompareTag(WALL))
                     {
                         isWall = true;
                     }
@@ -176,17 +179,11 @@ public class BasicEnemy : MonoBehaviour
                 finalNodeList.Add(startNode);
                 finalNodeList.Reverse();
 
-                //for (int i = 0; i < finalNodeList.Count; i++)
-                //{
-                //    print(i + "번째는 " + finalNodeList[i].xPos + ", " + finalNodeList[i].yPos);
-                //}
-
                 StartCoroutine(Move());
 
                 return;
             }
 
-            // ↑ → ↓ ←
             OpenListAdd(curNode.xPos, curNode.yPos + 1);
             OpenListAdd(curNode.xPos + 1, curNode.yPos);
             OpenListAdd(curNode.xPos, curNode.yPos - 1);
