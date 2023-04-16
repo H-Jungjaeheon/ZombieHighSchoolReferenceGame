@@ -125,7 +125,7 @@ public class BasicEnemy : MonoBehaviour
             {
                 isWall = false;
 
-                foreach (Collider2D collider in Physics2D.OverlapCircleAll(new Vector2(startPos.x + i, startPos.y + j), 0.40f))
+                foreach (Collider2D collider in Physics2D.OverlapCircleAll(new Vector2(startPos.x + i, startPos.y + j), 0.4f))
                 {
                     if (collider.gameObject.CompareTag(WALL))
                     {

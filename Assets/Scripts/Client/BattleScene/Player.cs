@@ -51,6 +51,9 @@ public class Player : MonoBehaviour
 
     [Tooltip("현재 변경된 조이스틱 상태")]
     private MoveState changePressState;
+
+    [Tooltip("플레이어 태그")]
+    private const string WALL = "Wall";
     #endregion
 
     /// <summary>
@@ -64,10 +67,26 @@ public class Player : MonoBehaviour
 
         detectObj.transform.rotation = Quaternion.Euler(detectObjAngles[(int)curMoveState]);
 
+        foreach (Collider2D collider in Physics2D.OverlapCircleAll((Vector2)transform.position + moveVector, 0.45f))
+        {
+            if (collider.gameObject.CompareTag(WALL))
+            {
+                isWallInPath = true;
+            }
+        }
+
         if (isWallInPath == false)
         {
-            while (Input.GetMouseButton(0) && isChangeDir == false)
+            while (Input.GetMouseButton(0) && isChangeDir == false && isWallInPath == false)
             {
+                foreach (Collider2D collider in Physics2D.OverlapCircleAll((Vector2)transform.position + moveVector, 0.45f))
+                {
+                    if (collider.gameObject.CompareTag(WALL))
+                    {
+                        isWallInPath = true;
+                    }
+                }
+
                 transform.Translate(moveVector * Time.deltaTime * speed);
 
                 TargetPosSetting();
@@ -109,6 +128,8 @@ public class Player : MonoBehaviour
             }
         }
 
+        isWallInPath = false;
+
         transform.position = endPos;
         TargetPosSetting();
 
@@ -137,8 +158,19 @@ public class Player : MonoBehaviour
     /// </summary>
     public void ChangeMoveDirection(MoveState curChangeMoveState)
     {
-        isChangeDir = true;
         changePressState = curChangeMoveState;
+
+        print(curState);
+
+        if (curState == CurState.Moving)
+        {
+            isChangeDir = true;
+        }
+        else
+        {
+            curState = CurState.Moving;
+            StartCoroutine(Move(changePressState));
+        }
     }
 
     /// <summary>

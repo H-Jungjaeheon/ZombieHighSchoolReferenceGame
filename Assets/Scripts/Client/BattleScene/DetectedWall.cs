@@ -9,19 +9,28 @@ public class DetectedWall : MonoBehaviour
     [Tooltip("º® ÅÂ±×")]
     private const string WALL = "Wall";
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    private void OnTriggerStay2D(Collider2D collision)
     {
         if (collision.CompareTag(WALL))
         {
             player.WallDetectionResults(true);
         }
-    }
-
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        if (collision.CompareTag(WALL))
+        else
         {
             player.WallDetectionResults(false);
         }
     }
+
+    //private void OnTriggerEnter2D(Collider2D collision)
+    //{
+        
+    //}
+
+    //private void OnTriggerExit2D(Collider2D collision)
+    //{
+    //    if (collision.CompareTag(WALL))
+    //    {
+    //        player.WallDetectionResults(false);
+    //    }
+    //}
 }
