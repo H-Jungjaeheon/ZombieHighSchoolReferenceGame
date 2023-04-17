@@ -60,7 +60,7 @@ public class BasicEnemy : MonoBehaviour
     [Header("이동 관련 요소들 모음")]
 
     [Tooltip("추격 후 플레이어 감지 범위")]
-    private const int updateDetectedRange = 50;
+    private const int updateDetectedRange = 90;
 
     [Tooltip("현재 노드가 벽인지 판별")]
     private bool isWall;
@@ -125,7 +125,7 @@ public class BasicEnemy : MonoBehaviour
             {
                 isWall = false;
 
-                foreach (Collider2D collider in Physics2D.OverlapCircleAll(new Vector2(startPos.x + i, startPos.y + j), 0.4f))
+                foreach (Collider2D collider in Physics2D.OverlapCircleAll(new Vector2(startPos.x + i, startPos.y + j), 0.2f))
                 {
                     if (collider.gameObject.CompareTag(WALL))
                     {
@@ -223,9 +223,7 @@ public class BasicEnemy : MonoBehaviour
     /// <summary>
     /// 움직임 함수
     /// </summary>
-    /// <param name="curMoveState"> 현재 이동 목표 상태 </param>
-    /// <returns></returns>
-    public IEnumerator Move() //MoveState curMoveState
+    public IEnumerator Move()
     {
         Vector2 curTargetPos;
 

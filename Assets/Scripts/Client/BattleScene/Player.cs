@@ -160,8 +160,6 @@ public class Player : MonoBehaviour
     {
         changePressState = curChangeMoveState;
 
-        print(curState);
-
         if (curState == CurState.Moving)
         {
             isChangeDir = true;
