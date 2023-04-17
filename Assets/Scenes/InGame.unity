@@ -29956,6 +29956,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyData: {fileID: 11400000, guid: beb00c3728276ca4a8cfa6f05ab1fd0d, type: 2}
+  hpBarImg: {fileID: 735657172}
   detectedPObj: {fileID: 0}
   finalNodeList: []
 --- !u!1 &44584003
@@ -30140,6 +30141,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyData: {fileID: 11400000, guid: beb00c3728276ca4a8cfa6f05ab1fd0d, type: 2}
+  hpBarImg: {fileID: 0}
   detectedPObj: {fileID: 0}
   finalNodeList: []
 --- !u!61 &208778922
@@ -30333,6 +30335,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyData: {fileID: 11400000, guid: beb00c3728276ca4a8cfa6f05ab1fd0d, type: 2}
+  hpBarImg: {fileID: 0}
   detectedPObj: {fileID: 0}
   finalNodeList: []
 --- !u!61 &219050831
@@ -31859,6 +31862,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyData: {fileID: 11400000, guid: beb00c3728276ca4a8cfa6f05ab1fd0d, type: 2}
+  hpBarImg: {fileID: 0}
   detectedPObj: {fileID: 0}
   finalNodeList: []
 --- !u!61 &791278940
@@ -59316,6 +59320,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyData: {fileID: 11400000, guid: beb00c3728276ca4a8cfa6f05ab1fd0d, type: 2}
+  hpBarImg: {fileID: 0}
   detectedPObj: {fileID: 0}
   finalNodeList: []
 --- !u!61 &1554600966

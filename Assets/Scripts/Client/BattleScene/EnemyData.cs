@@ -37,6 +37,10 @@ public class EnemyData : ScriptableObject
         {
             return hp;
         }
+        set
+        {
+            hp = value;
+        }
     }
 
     [SerializeField]

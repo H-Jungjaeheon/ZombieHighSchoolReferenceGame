@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 [System.Serializable]
 public class Node
@@ -50,17 +51,21 @@ public class BasicEnemy : MonoBehaviour
 {
     [SerializeField]
     [Tooltip("기본 적 정보(ScriptableObject)")]
-    private EnemyData enemyData;
+    protected EnemyData enemyData;
+
+    [SerializeField]
+    [Tooltip("체력바 이미지")]
+    protected Image hpBarImg;
 
     [SerializeField]
     [Tooltip("현재 감지한 플레이어 오브젝트")]
-    private GameObject detectedPObj;
+    protected GameObject detectedPObj;
 
     #region 이동 관련 요소들 모음
     [Header("이동 관련 요소들 모음")]
 
     [Tooltip("추격 후 플레이어 감지 범위")]
-    private const int updateDetectedRange = 90;
+    private const int updateDetectedRange = 50;
 
     [Tooltip("현재 노드가 벽인지 판별")]
     private bool isWall;
@@ -95,6 +100,23 @@ public class BasicEnemy : MonoBehaviour
     [Tooltip("벽 태그")]
     private const string WALL = "Wall";
     #endregion
+
+    public void Hit(int damage)
+    {
+        enemyData.Hp -= damage;
+
+        hpBarImg.fillAmount = (float)enemyData.Hp / enemyData.MaxHp;
+
+        if (enemyData.Hp <= 0)
+        {
+            Dead();
+        }
+    }
+
+    private void Dead()
+    {
+
+    }
 
     /// <summary>
     /// 플레이어 감지 시작
