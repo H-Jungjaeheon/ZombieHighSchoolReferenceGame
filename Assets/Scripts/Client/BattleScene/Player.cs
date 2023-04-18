@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum CurState
@@ -10,8 +11,11 @@ public enum CurState
 public class Player : MonoBehaviour
 {
     [HideInInspector]
-    [Tooltip("현재 플레이어 상태")]
+    [Tooltip("플레이어 상태")]
     public CurState curState;
+
+    [Tooltip("공격 범위 내의 적 리스트")]
+    public List<GameObject> rangeInEnemy = new List<GameObject>();
 
     #region 이동 관련 모음
     [Header("이동 관련 모음")]
@@ -49,9 +53,29 @@ public class Player : MonoBehaviour
     #endregion
 
     /// <summary>
+    /// 공격 실행 함수(버튼 클릭)
+    /// </summary>
+    public void Attack()
+    {
+        for (int i = 0; i < rangeInEnemy.Count; i++)
+        {
+            print("실행");
+            rangeInEnemy[i].GetComponent<BasicEnemy>().Hit(1);
+        }
+    }
+
+    /// <summary>
+    /// 스킬 실행 함수(버튼 클릭)
+    /// </summary>
+    public void Skill()
+    {
+        
+    }
+
+    /// <summary>
     /// 움직임 함수
     /// </summary>
-    /// <param name="curMoveState"> 현재 이동 목표 상태 </param>
+    /// <param name="curMoveState"> 이동 목표 상태 </param>
     /// <returns></returns>
     public IEnumerator Move(MoveState curMoveState)
     {
@@ -59,7 +83,7 @@ public class Player : MonoBehaviour
 
         foreach (Collider2D collider in Physics2D.OverlapCircleAll((Vector2)transform.position + moveVector, 0.45f))
         {
-            if (collider.gameObject.CompareTag(WALL))
+            if (collider.CompareTag(WALL))
             {
                 isWallInPath = true;
             }
@@ -71,7 +95,7 @@ public class Player : MonoBehaviour
             {
                 foreach (Collider2D collider in Physics2D.OverlapCircleAll((Vector2)transform.position + moveVector, 0.45f))
                 {
-                    if (collider.gameObject.CompareTag(WALL))
+                    if (collider.CompareTag(WALL))
                     {
                         isWallInPath = true;
                     }
@@ -135,7 +159,7 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// 현재 움직임 목표 위치 세팅
+    /// 움직임 목표 위치 세팅
     /// </summary>
     private void TargetPosSetting()
     {

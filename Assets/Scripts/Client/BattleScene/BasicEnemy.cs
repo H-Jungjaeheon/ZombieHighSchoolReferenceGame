@@ -53,6 +53,9 @@ public class BasicEnemy : MonoBehaviour
     [Tooltip("기본 적 정보(ScriptableObject)")]
     protected EnemyData enemyData;
 
+    [Tooltip("체력")]
+    private int hp;
+
     [SerializeField]
     [Tooltip("체력바 이미지 컴포넌트")]
     protected Image hpBarImg;
@@ -111,17 +114,30 @@ public class BasicEnemy : MonoBehaviour
     private const string WALL = "Wall";
     #endregion
 
+    private void Awake()
+    {
+        StartSetting();
+    }
+
+    /// <summary>
+    /// 시작 세팅 함수
+    /// </summary>
+    private void StartSetting()
+    {
+        hp = enemyData.maxHp;
+    }
+
     /// <summary>
     /// 피격 함수
     /// </summary>
     /// <param name="damage"> 받은 데미지 </param>
     public void Hit(int damage)
     {
-        enemyData.Hp -= damage;
+        hp -= damage;
 
-        hpBarImg.fillAmount = (float)enemyData.Hp / enemyData.MaxHp;
+        hpBarImg.fillAmount = (float)hp / enemyData.maxHp;
 
-        if (enemyData.Hp <= 0)
+        if (hp <= 0)
         {
             Dead();
         }
@@ -155,7 +171,7 @@ public class BasicEnemy : MonoBehaviour
     /// </summary>
     private void Dead()
     {
-        StageManager.instance.PlusScore(enemyData.Score);
+        StageManager.instance.PlusScore(enemyData.score);
 
         Destroy(gameObject);
     }

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyName: BandagedPatient
   maxHp: 6
-  hp: 6
+  hp: -1
   sightRange: 4
   speed: 2
   score: 100

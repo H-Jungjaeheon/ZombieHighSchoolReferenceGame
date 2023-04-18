@@ -15,33 +15,8 @@ public class EnemyData : ScriptableObject
         }
     }
 
-    [SerializeField]
     [Tooltip("최대 체력")]
-    private int maxHp;
-
-    public int MaxHp
-    {
-        get
-        {
-            return maxHp;
-        }
-    }
-
-    [SerializeField]
-    [Tooltip("체력")]
-    private int hp;
-
-    public int Hp
-    {
-        get
-        {
-            return hp;
-        }
-        set
-        {
-            hp = value;
-        }
-    }
+    public int maxHp;
 
     [SerializeField]
     [Tooltip("플레이어 인식 범위")]
@@ -67,15 +42,6 @@ public class EnemyData : ScriptableObject
         }
     }
 
-    [SerializeField]
     [Tooltip("점수")]
-    private int score;
-
-    public int Score
-    {
-        get
-        {
-            return score;
-        }
-    }
+    public int score;
 }
