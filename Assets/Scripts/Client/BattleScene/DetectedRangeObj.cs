@@ -47,7 +47,7 @@ public class DetectedRangeObj : MonoBehaviour
         {
             basicEnemy.DetectedPlayer(collision.gameObject);
 
-            ColliderSizeSetting(100);
+            ColliderSizeSetting(90);
         }
     }
 }

@@ -69,9 +69,9 @@ public class EnemyData : ScriptableObject
 
     [SerializeField]
     [Tooltip("Á¡¼ö")]
-    private float score;
+    private int score;
 
-    public float Score
+    public int Score
     {
         get
         {

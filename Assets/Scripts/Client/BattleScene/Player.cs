@@ -21,14 +21,6 @@ public class Player : MonoBehaviour
     private float speed;
 
     [SerializeField]
-    [Tooltip("벽 감지 오브젝트")]
-    private GameObject detectObj;
-
-    [SerializeField]
-    [Tooltip("벽 감지 오브젝트의 각도들 모음")]
-    private Vector3[] detectObjAngles;
-
-    [SerializeField]
     [Tooltip("이동 연산에 사용될 Vector 모음")]
     private Vector2[] moveVectors;
 
@@ -64,8 +56,6 @@ public class Player : MonoBehaviour
     public IEnumerator Move(MoveState curMoveState)
     {
         moveVector = moveVectors[(int)curMoveState];
-
-        detectObj.transform.rotation = Quaternion.Euler(detectObjAngles[(int)curMoveState]);
 
         foreach (Collider2D collider in Physics2D.OverlapCircleAll((Vector2)transform.position + moveVector, 0.45f))
         {

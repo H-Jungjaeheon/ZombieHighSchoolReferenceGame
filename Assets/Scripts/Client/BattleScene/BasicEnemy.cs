@@ -54,12 +54,22 @@ public class BasicEnemy : MonoBehaviour
     protected EnemyData enemyData;
 
     [SerializeField]
-    [Tooltip("체력바 이미지")]
+    [Tooltip("체력바 이미지 컴포넌트")]
     protected Image hpBarImg;
+
+    [SerializeField]
+    [Tooltip("SpriteRenderer 컴포넌트")]
+    protected SpriteRenderer sr;
 
     [SerializeField]
     [Tooltip("현재 감지한 플레이어 오브젝트")]
     protected GameObject detectedPObj;
+
+    [Tooltip("코루틴 딜레이 : 0.1초")]
+    private WaitForSeconds zeroToOne = new WaitForSeconds(0.1f);
+
+    [Tooltip("현재 실행중인 타격 효과 코루틴")]
+    private IEnumerator hitEffectCoroutine;
 
     #region 이동 관련 요소들 모음
     [Header("이동 관련 요소들 모음")]
@@ -101,6 +111,10 @@ public class BasicEnemy : MonoBehaviour
     private const string WALL = "Wall";
     #endregion
 
+    /// <summary>
+    /// 피격 함수
+    /// </summary>
+    /// <param name="damage"> 받은 데미지 </param>
     public void Hit(int damage)
     {
         enemyData.Hp -= damage;
@@ -111,11 +125,39 @@ public class BasicEnemy : MonoBehaviour
         {
             Dead();
         }
+        else 
+        {
+            if (hitEffectCoroutine != null)
+            {
+                StopCoroutine(hitEffectCoroutine);    
+            }
+
+            hitEffectCoroutine = HitEffect();
+            StartCoroutine(hitEffectCoroutine);
+        }
     }
 
+    /// <summary>
+    /// 타격 효과 함수
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator HitEffect()
+    {
+        sr.color = Color.red;
+
+        yield return zeroToOne;
+
+        sr.color = Color.white;
+    }
+
+    /// <summary>
+    /// 사망 함수
+    /// </summary>
     private void Dead()
     {
+        StageManager.instance.PlusScore(enemyData.Score);
 
+        Destroy(gameObject);
     }
 
     /// <summary>
