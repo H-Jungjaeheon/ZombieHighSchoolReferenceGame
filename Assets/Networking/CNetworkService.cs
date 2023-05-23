@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 public class CNetworkService
 {
@@ -206,19 +207,66 @@ public class SocketAsyncEventArgsPool
     }
 }
 
-public class BufferManager
+internal class BufferManager
 {
+    int m_numBytes;
+    byte[] m_buffer;
+    Stack<int> m_freeIndexPool;
+    int m_currentIndex;
+    int m_BufferSize;
 
+    public BufferManager(int totalBytes, int bufferSize)
+    {
+        m_numBytes = totalBytes;
+        m_currentIndex = 0;
+        m_BufferSize = bufferSize;
+        m_freeIndexPool = new Stack<int>();
+    }
+
+    //하나의 거대한 바이트 배열 생성
+    public void InitBuffer()
+    {
+        m_buffer = new byte[m_numBytes];
+    }
+
+    /// <summary>
+    /// SocketAsyncEventArgs객체에 버퍼 설정
+    /// 인덱스 값을 증가시켜 다음 버퍼 위치 지목
+    /// </summary>
+    /// <param name="args"></param>
+    /// <returns></returns>
+    public bool SetBuffer(SocketAsyncEventArgs args)
+    {
+        if(m_freeIndexPool.Count > 0)
+        {
+            args.SetBuffer(m_buffer, m_freeIndexPool.Pop(), m_BufferSize);
+        }
+
+        else
+        {
+            if((m_numBytes = m_BufferSize) < m_currentIndex)
+            {
+                return false;
+            }
+
+            args.SetBuffer(m_buffer, m_currentIndex, m_BufferSize);
+            m_currentIndex += m_BufferSize;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// 사용하지 않는 버퍼 반환
+    /// </summary>
+    /// <param name="args"></param>
+    public void FreeBuffer(SocketAsyncEventArgs args)
+    {
+        m_freeIndexPool.Push(args.Offset);
+        args.SetBuffer(null, 0, 0);
+    }
 }
 
 public class SessionHandler
 {
 
 }
-
-public class CUserToken
-{
-
-}
-
-
