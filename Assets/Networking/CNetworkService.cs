@@ -4,14 +4,16 @@ using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Collections.Generic;
 
 public class CNetworkService
 {
-    // 클라이언트의 접속을 받아들이기 위한 객체
+    //클라이언트의 접속을 받아들이기 위한 객체
     CListener client_listener;
 
-    // 메시지 수신, 전송시 필요한 오브젝트
+    //메시지 수신용 풀
     SocketAsyncEventArgsPool receive_event_args_pool;
+    //메시지 전송용 풀
     SocketAsyncEventArgsPool send_event_args_pool;
 
     //메시지 수진, 전송시 .Net 비동기 소켓에서 사용할 버퍼를 관리하는 객체
@@ -20,6 +22,15 @@ public class CNetworkService
     //클라이언트의 접속이 이뤄졌을때 작동하는 콜벡 델리게이트
     public delegate void SessionHandle(CUserToken token);
     public SessionHandler session_created_callback { get; set; }
+    public void listen(string host, int port, int backlog)
+    {
+        CListener listener = new CListener();
+
+        //TODO:on_new_client콜백 함수 구현 예정
+        listener.callback_on_newclient += on_new_client;
+        //매개변수들을 받아 listener 호출 기다림
+        listener.start(host, port, backlog);
+    }
 }
 
 public class CListener
@@ -70,7 +81,8 @@ public class CListener
             //클라이언트가 들어오기를 기다림
             //비동기 메소드 이므로 블로킹 되지 않고 바로 리턴
             //콜백 메소드를 통해서 접속 통보를 처리
-            this.listen_socket.AcceptAsync(this.accept_args);
+            Thread listen_thread = new Thread(do_listen);
+            listen_thread.Start();
         }
 
         catch(Exception e)
@@ -148,9 +160,50 @@ public class CListener
     }
 }
 
+//재사용 가능한 SocketAsyncEventArgs 개체 컬렉션
 public class SocketAsyncEventArgsPool
 {
+    Stack<SocketAsyncEventArgs> m_pool;
 
+    //객체 풀을 지정된 크기로 초기화합니다
+    //"capacity" 매개 변수는 다음의 최대 개수입니다
+    //풀에 저장할 수 있는 SocketAsyncEventArgs 개체
+    public SocketAsyncEventArgsPool(int capacity)
+    {
+        m_pool = new Stack<SocketAsyncEventArgs>(capacity);
+    }
+
+    //SocketAsyncEventArg 인스턴스를 풀에 추가합니다
+    //"item" 매개 변수는 SocketAsyncEventArgs 인스턴스입니다
+    //풀에 추가
+    public void Push(SocketAsyncEventArgs item)
+    {
+        if(item == null)
+        {
+            throw new ArgumentNullException("Items added to a SocketAsyncEventArgsPool Cannot be null");
+        }
+
+        lock (m_pool)
+        {
+            m_pool.Push(item);
+        }
+    }
+
+    //풀에서 SocketAsyncEventArgs 인스턴스를 제거합니다
+    //풀에서 제거된 개체를 반환합니다
+    public SocketAsyncEventArgs Pop()
+    {
+        lock(m_pool)
+        {
+            return m_pool.Pop();
+        }
+    }
+
+    //풀의 SocketAsyncEventArgs 인스턴스 수입니다
+    public int Count
+    {
+        get { return m_pool.Count; }
+    }
 }
 
 public class BufferManager
