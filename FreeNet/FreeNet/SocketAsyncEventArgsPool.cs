@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace FreeNet
 {
-    internal class SocketAsyncEventArgsPool
+    class SocketAsyncEventArgsPool
     {
+
     }
 }
