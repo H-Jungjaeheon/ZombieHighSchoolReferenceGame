@@ -26,7 +26,7 @@ public class Player : MonoBehaviour
 
     [SerializeField]
     [Tooltip("이동 연산에 사용될 Vector 모음")]
-    private Vector2[] moveVectors;
+    private Vector3[] moveVectors;
 
     [SerializeField]
     [Tooltip("현재 이동 경로에 벽이 있는지 판별")]
@@ -34,13 +34,13 @@ public class Player : MonoBehaviour
 
     [HideInInspector]
     [Tooltip("이동시 미리 도달할 기준 좌표")]
-    public Vector2 moveTargetPos;
+    public Vector3 moveTargetPos;
 
     [Tooltip("이동 연산에 사용될 Vector")]
-    private Vector2 moveVector;
+    private Vector3 moveVector;
 
     [Tooltip("이동 종료 시 멈출 위치")]
-    private Vector2 endPos;
+    private Vector3 endPos;
 
     [Tooltip("현재 이동 경로 변경할지 판별")]
     private bool isChangeDir;
@@ -81,7 +81,7 @@ public class Player : MonoBehaviour
     {
         moveVector = moveVectors[(int)curMoveState];
 
-        foreach (Collider2D collider in Physics2D.OverlapCircleAll((Vector2)transform.position + moveVector, 0.45f))
+        foreach (Collider2D collider in Physics2D.OverlapCircleAll(transform.position + moveVector, 0.45f))
         {
             if (collider.CompareTag(WALL))
             {
@@ -93,7 +93,7 @@ public class Player : MonoBehaviour
         {
             while (Input.GetMouseButton(0) && isChangeDir == false && isWallInPath == false)
             {
-                foreach (Collider2D collider in Physics2D.OverlapCircleAll((Vector2)transform.position + moveVector, 0.45f))
+                foreach (Collider2D collider in Physics2D.OverlapCircleAll(transform.position + moveVector, 0.45f))
                 {
                     if (collider.CompareTag(WALL))
                     {

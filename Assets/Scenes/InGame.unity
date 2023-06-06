@@ -29966,7 +29966,7 @@ MonoBehaviour:
   enemyData: {fileID: 11400000, guid: beb00c3728276ca4a8cfa6f05ab1fd0d, type: 2}
   hpBarImg: {fileID: 735657172}
   sr: {fileID: 1651256862}
-  detectedPObj: {fileID: 0}
+  playerComponent: {fileID: 0}
   finalNodeList: []
 --- !u!1 &48739007
 GameObject:
@@ -31499,7 +31499,7 @@ MonoBehaviour:
   enemyData: {fileID: 11400000, guid: beb00c3728276ca4a8cfa6f05ab1fd0d, type: 2}
   hpBarImg: {fileID: 1113380613}
   sr: {fileID: 590892940}
-  detectedPObj: {fileID: 0}
+  playerComponent: {fileID: 0}
   finalNodeList: []
 --- !u!61 &858224009
 BoxCollider2D:
@@ -59018,12 +59018,12 @@ MonoBehaviour:
   rangeInEnemy: []
   speed: 6
   moveVectors:
-  - {x: 0, y: 1}
-  - {x: 0, y: -1}
-  - {x: -1, y: 0}
-  - {x: 1, y: 0}
+  - {x: 0, y: 1, z: 0}
+  - {x: 0, y: -1, z: 0}
+  - {x: -1, y: 0, z: 0}
+  - {x: 1, y: 0, z: 0}
   isWallInPath: 0
-  moveTargetPos: {x: 0, y: 0}
+  moveTargetPos: {x: 0, y: 0, z: 0}
 --- !u!61 &1661005056
 BoxCollider2D:
   m_ObjectHideFlags: 0

@@ -65,8 +65,8 @@ public class BasicEnemy : MonoBehaviour
     protected SpriteRenderer sr;
 
     [SerializeField]
-    [Tooltip("현재 감지한 플레이어 오브젝트")]
-    protected GameObject detectedPObj;
+    [Tooltip("현재 감지한 플레이어의 Player 컴포넌트")]
+    protected Player playerComponent;
 
     [Tooltip("코루틴 딜레이 : 0.1초")]
     private WaitForSeconds zeroToOne = new WaitForSeconds(0.1f);
@@ -84,10 +84,10 @@ public class BasicEnemy : MonoBehaviour
     private bool isWall;
 
     [Tooltip("경로 탐색 시 시작 포지션")]
-    private Vector2 startPos;
+    private Vector3 startPos;
 
     [Tooltip("경로 탐색 시 목표 포지션")]
-    private Vector2 targetPos;
+    private Vector3 targetPos;
 
     [Tooltip("최종 경로 노드 리스트")]
     public List<Node> finalNodeList;
@@ -181,12 +181,12 @@ public class BasicEnemy : MonoBehaviour
     /// </summary>
     public virtual void DetectedPlayer(GameObject detectedPlayerObj)
     {
-        if (detectedPObj != null)
+        if (playerComponent != null)
         {
             return;
         }
 
-        detectedPObj = detectedPlayerObj;
+        playerComponent = detectedPlayerObj.GetComponent<Player>();
 
         PathFinding();
     }
@@ -196,8 +196,8 @@ public class BasicEnemy : MonoBehaviour
     /// </summary>
     public void PathFinding()
     {
-        startPos = new Vector2(transform.position.x, transform.position.y);
-        targetPos = detectedPObj.GetComponent<Player>().moveTargetPos;
+        startPos = transform.position;
+        targetPos = playerComponent.moveTargetPos;
         
         for (int i = -updateDetectedRange; i <= updateDetectedRange; i++) //플레이어 추격 범위만큼 노드 세팅
         {
@@ -324,7 +324,7 @@ public class BasicEnemy : MonoBehaviour
                 yield return null;
             }
 
-            if (detectedPObj.GetComponent<Player>().moveTargetPos != targetPos)
+            if (playerComponent.GetComponent<Player>().moveTargetPos != targetPos)
             {
                 PathFinding();
 
