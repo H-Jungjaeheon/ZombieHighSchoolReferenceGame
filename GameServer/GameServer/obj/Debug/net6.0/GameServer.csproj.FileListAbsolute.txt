@@ -1,0 +1,15 @@
+F:\portfolio\Fork\ZombieHighSchoolReferenceGame\GameServer\GameServer\bin\Debug\net6.0\GameServer.exe
+F:\portfolio\Fork\ZombieHighSchoolReferenceGame\GameServer\GameServer\bin\Debug\net6.0\GameServer.deps.json
+F:\portfolio\Fork\ZombieHighSchoolReferenceGame\GameServer\GameServer\bin\Debug\net6.0\GameServer.runtimeconfig.json
+F:\portfolio\Fork\ZombieHighSchoolReferenceGame\GameServer\GameServer\bin\Debug\net6.0\GameServer.dll
+F:\portfolio\Fork\ZombieHighSchoolReferenceGame\GameServer\GameServer\bin\Debug\net6.0\GameServer.pdb
+F:\portfolio\Fork\ZombieHighSchoolReferenceGame\GameServer\GameServer\obj\Debug\net6.0\GameServer.csproj.AssemblyReference.cache
+F:\portfolio\Fork\ZombieHighSchoolReferenceGame\GameServer\GameServer\obj\Debug\net6.0\GameServer.GeneratedMSBuildEditorConfig.editorconfig
+F:\portfolio\Fork\ZombieHighSchoolReferenceGame\GameServer\GameServer\obj\Debug\net6.0\GameServer.AssemblyInfoInputs.cache
+F:\portfolio\Fork\ZombieHighSchoolReferenceGame\GameServer\GameServer\obj\Debug\net6.0\GameServer.AssemblyInfo.cs
+F:\portfolio\Fork\ZombieHighSchoolReferenceGame\GameServer\GameServer\obj\Debug\net6.0\GameServer.csproj.CoreCompileInputs.cache
+F:\portfolio\Fork\ZombieHighSchoolReferenceGame\GameServer\GameServer\obj\Debug\net6.0\GameServer.dll
+F:\portfolio\Fork\ZombieHighSchoolReferenceGame\GameServer\GameServer\obj\Debug\net6.0\refint\GameServer.dll
+F:\portfolio\Fork\ZombieHighSchoolReferenceGame\GameServer\GameServer\obj\Debug\net6.0\GameServer.pdb
+F:\portfolio\Fork\ZombieHighSchoolReferenceGame\GameServer\GameServer\obj\Debug\net6.0\GameServer.genruntimeconfig.cache
+F:\portfolio\Fork\ZombieHighSchoolReferenceGame\GameServer\GameServer\obj\Debug\net6.0\ref\GameServer.dll
