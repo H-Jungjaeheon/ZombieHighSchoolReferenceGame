@@ -1,3 +1,4 @@
+using GameServer;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,6 +15,9 @@ public class Client : MonoBehaviour
     public int MyId = 0;
     public Tcp MyTcp;
 
+    private delegate void PacketHandler(Packet _Packet);
+    private static Dictionary<int, PacketHandler> PacketHandlers;
+
     private void Awake()
     {
         if (Instance == null)
@@ -22,7 +26,7 @@ public class Client : MonoBehaviour
             DontDestroyOnLoad(this);
         }
 
-        else if(Instance != this)
+        else if (Instance != this)
         {
             Debug.Log("Instance Already Exists, Destroying Object");
             Destroy(this);
@@ -36,6 +40,8 @@ public class Client : MonoBehaviour
 
     public void ConnectToServer()
     {
+        InitializeClientData();
+
         MyTcp.Connect();
     }
 
@@ -44,6 +50,7 @@ public class Client : MonoBehaviour
         public TcpClient Socket;
 
         private NetworkStream Stream;
+        private Packet ReceiveData;
         private byte[] ReceiveBuffer;
 
         public void Connect()
@@ -62,12 +69,14 @@ public class Client : MonoBehaviour
         {
             Socket.EndConnect(_Result);
 
-            if(!Socket.Connected)
+            if (!Socket.Connected)
             {
                 return;
             }
 
             Stream = Socket.GetStream();
+
+            ReceiveData = new Packet();
 
             Stream.BeginRead(ReceiveBuffer, 0, DataBufferSize, ReceiveCallback, null);
         }
@@ -77,22 +86,77 @@ public class Client : MonoBehaviour
             try
             {
                 int _ByteLength = Stream.EndRead(_Result);
-                if(_ByteLength <= 0 ) 
+                if (_ByteLength <= 0)
                 {
                     //TODO: 클라이언트 접속 종료
                     return;
                 }
 
-                byte[]_Data = new byte[_ByteLength];
+                byte[] _Data = new byte[_ByteLength];
                 Array.Copy(ReceiveBuffer, _Data, _ByteLength);
 
-                //TODO: Handle Data
+                ReceiveData.Reset(HandleData(_Data));
                 Stream.BeginRead(ReceiveBuffer, 0, DataBufferSize, ReceiveCallback, null);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 //TODO: 클라이언트 접속 종료
             }
         }
+
+        private bool HandleData(byte[] _Data)
+        {
+            int _PacketLength = 0;
+
+            ReceiveData.SetBytes(_Data);
+
+            if (ReceiveData.UnreadLength() >= 4)
+            {
+                _PacketLength = ReceiveData.ReadInt();
+                if (_PacketLength <= 0)
+                {
+                    return true;
+                }
+            }
+
+            while (_PacketLength > 0 && _PacketLength <= ReceiveData.UnreadLength())
+            {
+                byte[] _PacketBytes = ReceiveData.ReadBytes(_PacketLength);
+                ThreadManager.ExecuteOnMainThread(() =>
+                {
+                    using (Packet _Packet = new Packet(_PacketBytes))
+                    {
+                        int _PacketId = _Packet.ReadInt();
+                        PacketHandlers[_PacketId](_Packet);
+                    }
+                });
+
+                _PacketLength = 0;
+                if (ReceiveData.UnreadLength() >= 4)
+                {
+                    _PacketLength = ReceiveData.ReadInt();
+                    if (_PacketLength <= 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            if (_PacketLength <= 1)
+            {
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    private void InitializeClientData()
+    {
+        PacketHandlers = new Dictionary<int, PacketHandler>()
+        {
+            {(int)ServerPackets.welcome, ClientHandle.Welcome }
+        };
+        Debug.Log("Initialized Packet");
     }
 }
