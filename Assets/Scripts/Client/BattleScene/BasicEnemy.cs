@@ -112,10 +112,14 @@ public class BasicEnemy : MonoBehaviour
     [Tooltip("경로 탐색 가능한 노드 리스트")]
     private List<Node> openList = new List<Node>();
 
-    private List<Node> mapData = new List<Node>();
+    [Tooltip("현재 맵의 전체 노드 리스트")]
+    private List<Node> curMapNodes = new List<Node>();
 
     //[Tooltip("경로 탐색 완료한 노드 리스트")]
     //private List<Node> closedList = new List<Node>();
+
+    [Tooltip("0.05초 딜레이")]
+    private WaitForSeconds pointZeroFiveSec = new WaitForSeconds(0.05f);
 
     [Tooltip("벽 태그")]
     private const string WALL = "Wall";
@@ -203,42 +207,37 @@ public class BasicEnemy : MonoBehaviour
 
     private IEnumerator PathFind()
     {
-        WaitForSeconds pointZeroFiveSec = new WaitForSeconds(0.05f);
-
-        #region  초가화 
-
         openList.Clear();
-        mapData.Clear();
-        MapSetting();
-
-        #endregion
+        curMapNodes.Clear();
+        MapSetting(); //초기화
 
         startNode.gCost = 0;
-        startNode.hCost = Heuristic(startNode.position, endNode.position);
+        startNode.hCost = Heuristic(startNode.nodePos, targetNode.nodePos);
         openList.Add(startNode);
 
-        // PAthFinding
-        while (openNodes.Count > 0)
+        Node currentNode = openList[0];
+
+        //경로 탐색
+        while (openList.Count > 0)
         {
-            Node currentNode = GetLowestFCost(openNodes);
-            openNodes.Remove(currentNode);
-
-
-            #region  시각화 하기 위한 곳 오픈 리스트에 들어간 노드를 초록으로 변경
-            if (currentNode != startNode)
+            for (int i = 1; i < openList.Count; i++)
             {
-                currentNode.tile.SetColor(Color.green);
+                if (openList[i].fCost < currentNode.fCost)
+                {
+                    currentNode = openList[i];
+                }
             }
-            #endregion
 
-            if (currentNode == endNode) // 현재 노드가 끝 노드라면
+            openList.Remove(currentNode);
+
+            if (currentNode == targetNode) // 현재 노드가 끝 노드라면
             {
-                print("Find");
-                ShowPath(endNode);
+                ShowPath(targetNode);
+
                 yield break;
             }
 
-            if (currentNode.moveable == true)
+            if (currentNode.isWall == false)
             {
                 Right(currentNode);
                 yield return pointZeroFiveSec;
@@ -265,68 +264,70 @@ public class BasicEnemy : MonoBehaviour
                 yield return pointZeroFiveSec;
             }
 
-            currentNode.moveable = false;    // 한번 간 노드 
-
-            yield return pointZeroFiveSec;
+            currentNode.isWall = true;    // 한번 간 노드 
         }
     }
 
-    #region  오른쪽 검사
-
-    private bool Right(Node _startNode, bool isMovealbe = false)
+    /// <summary>
+    /// 오른쪽 노드 검사
+    /// </summary>
+    /// <param name="_startNode"> 검사 시작 노드 </param>
+    /// <returns></returns>
+    private bool Right(Node _startNode, bool isMoveable = false)
     {
-        int x = _startNode.position.x;
-        int y = _startNode.position.y;
+        int x = _startNode.nodePos.x;
+        int y = _startNode.nodePos.y;
 
         Node startNode = _startNode;
-        Node currentNode = startNode;
+        Node currentNode = _startNode;
 
         bool isFind = false;
 
-        while (currentNode.moveable == true)
+        while (currentNode.isWall)
         {
-            currentNode.moveable = isMovealbe;
+            currentNode.isWall = isMoveable;
 
             #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
-
-            if (Comp(x + 1, y) == false)   // 탐색 가능 여부
+            if (CheakWallNode(x + 1, y) == false)   // 탐색 가능 여부
             {
                 break;
             }
+
             currentNode = GetGrid(++x, y); // 다음 오른쪽 노드로 이동
 
-            if (currentNode.moveable == false)
+            if (currentNode.isWall == false)
             {
                 break;
             }
 
-            if (currentNode == this.endNode)
+            if (currentNode == targetNode)
             {
                 isFind = true;
-                if (isMovealbe == false)
+
+                if (isMoveable == false)
                 {
                     AddOpenList(currentNode, startNode);
                 }
+
                 break;
             }
-
-            currentNode.tile.SetColor(Color.gray);
-
             #endregion
 
             #region 위쪽이 막혀 있으면서 오른쪽 위는 뚫려있는 경우
 
-            if (y + 1 < mapSize.y && x + 1 < mapSize.x)
+            if (y + 1 < playerComponent.moveTargetPos.y && x + 1 < playerComponent.moveTargetPos.x)
             {
-                if (GetGrid(x, y + 1).moveable == false) // 위쪽이 벽이면
+                if (GetGrid(x, y + 1).isWall) // 위쪽이 벽이면
                 {
-                    if (GetGrid(x + 1, y + 1).moveable == true) // 오른쪽 위가 막혀있지 않으면
+                    if (GetGrid(x + 1, y + 1).isWall == true) // 오른쪽 위가 막혀있지 않으면
                     {
-                        if (isMovealbe == false)
+                        if (isMoveable == false)
                         {
                             AddOpenList(currentNode, startNode);
                         }
+
                         isFind = true;
+
                         break; // 코너 발견하면 바로 종료
                     }
                 }
@@ -336,17 +337,19 @@ public class BasicEnemy : MonoBehaviour
 
             #region 위쪽이 막혀 있으면서 오른쪽 아래는 뚫려있는 경우
 
-            if (y > 0 && x + 1 < mapSize.x)
+            if (y > playerComponent.moveTargetPos.y && x + 1 < playerComponent.moveTargetPos.x)
             {
-                if (GetGrid(x, y - 1).moveable == false) // 아래쪽이 벽이고
+                if (GetGrid(x, y - 1).isWall == false) // 아래쪽이 벽이고
                 {
-                    if (GetGrid(x + 1, y - 1).moveable == true) // 오른쪽 아래가 막혀 있지 않으면
+                    if (GetGrid(x + 1, y - 1).isWall == true) // 오른쪽 아래가 막혀 있지 않으면
                     {
-                        if (isMovealbe == false)
+                        if (isMoveable == false)
                         {
                             AddOpenList(currentNode, startNode);
                         }
+
                         isFind = true;
+
                         break; // 코너 발견하면 바로 종료
                     }
                 }
@@ -355,19 +358,16 @@ public class BasicEnemy : MonoBehaviour
             #endregion
         }
 
-        startNode.moveable = true;
+        startNode.isWall = true;
         return isFind;
     }
-
-    #endregion
-
 
     #region  왼쪽 검사
 
     private bool Left(Node _startNode, bool _isMovealbe = false)
     {
-        int x = _startNode.position.x;
-        int y = _startNode.position.y;
+        int x = _startNode.nodePos.x;
+        int y = _startNode.nodePos.y;
 
         Node startNode = _startNode;
         Node currentNode = startNode;
@@ -381,7 +381,7 @@ public class BasicEnemy : MonoBehaviour
 
             #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
 
-            if (Comp(x - 1, y) == false)   // 탐색 가능 여부
+            if (CheakWallNode(x - 1, y) == false)   // 탐색 가능 여부
             {
                 break;
             }
@@ -472,7 +472,7 @@ public class BasicEnemy : MonoBehaviour
 
             #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
 
-            if (Comp(x, y + 1) == false)   // 탐색 가능 여부
+            if (CheakWallNode(x, y + 1) == false)   // 탐색 가능 여부
             {
                 break;
             }
@@ -565,7 +565,7 @@ public class BasicEnemy : MonoBehaviour
 
             #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
 
-            if (Comp(x, y - 1) == false)   // 탐색 가능 여부
+            if (CheakWallNode(x, y - 1) == false)   // 탐색 가능 여부
             {
                 break;
             }
@@ -657,7 +657,7 @@ public class BasicEnemy : MonoBehaviour
 
             #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
 
-            if (Comp(x + 1, y + 1) == false)   // 탐색 가능 여부
+            if (CheakWallNode(x + 1, y + 1) == false)   // 탐색 가능 여부
             {
                 break;
             }
@@ -755,7 +755,7 @@ public class BasicEnemy : MonoBehaviour
 
             #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
 
-            if (Comp(x + 1, y - 1) == false)   // 탐색 가능 여부
+            if (CheakWallNode(x + 1, y - 1) == false)   // 탐색 가능 여부
             {
                 break;
             }
@@ -851,7 +851,7 @@ public class BasicEnemy : MonoBehaviour
 
             #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
 
-            if (Comp(x - 1, y + 1) == false)   // 탐색 가능 여부
+            if (CheakWallNode(x - 1, y + 1) == false)   // 탐색 가능 여부
             {
                 break;
             }
@@ -946,7 +946,7 @@ public class BasicEnemy : MonoBehaviour
 
             #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
 
-            if (Comp(x - 1, y - 1) == false)   // 탐색 가능 여부
+            if (CheakWallNode(x - 1, y - 1) == false)   // 탐색 가능 여부
             {
                 break;
             }
@@ -1024,79 +1024,72 @@ public class BasicEnemy : MonoBehaviour
 
     #endregion
 
-    #region  탐색 가능 여부
-    private bool Comp(int _x, int _y)
+    /// <summary>
+    /// 탐색 가능 여부 체크 함수
+    /// </summary>
+    /// <param name="nodeXPos"></param>
+    /// <param name="nodeYPos"></param>
+    /// <returns></returns>
+    private bool CheakWallNode(int nodeXPos, int nodeYPos)
     {
-        if (_x < 0 || _y < 0 || _x >= mapSize.x || _y >= mapSize.y)
+        if (nodeXPos < criteriaTilePos.x || nodeYPos < criteriaTilePos.y || nodeXPos >= criteriaTilePos.x + mapSize.x || nodeYPos >= criteriaTilePos.y + mapSize.y)
         {
             return false;
         }
+
         return true;
     }
-    #endregion
-
 
     #region 리스트 안에 있는 노드를 X와 y좌표 값으로 반환
 
     private Node GetGrid(int _x, int _y)
     {
-        return mapData[_x + _y * mapSize.x];
+        return curMapNodes[_x + _y * mapSize.x];
     }
 
     #endregion
-
 
     /// <summary>
     /// 맵 세팅 함수
     /// </summary>
     private void MapSetting()
     {
-        int x; //
-        int y;
-
-        Node newNode;
+        Node curMapNode;
 
         for (int i = 0; i < mapSize.y; i++)
         {
             for (int j = 0; j < mapSize.x; j++)
             {
-                foreach (Collider2D collider in Physics2D.OverlapCircleAll(new Vector2(startPos.x + i, startPos.y + j), 0.2f))
+                foreach (Collider2D collider in Physics2D.OverlapCircleAll(new Vector2(startPos.x + j, startPos.y + i), 0.2f))
                 {
-                    if (collider.gameObject.CompareTag(WALL))
+                    if (!collider.gameObject.CompareTag(WALL))
                     {
                         isWall = true;
                     }
                 }
 
-                newNode = new Node(isWall, criteriaTilePos.x + i, criteriaTilePos.y);
-                mapData.Add(newNode);
-            }
+                curMapNode = new Node(isWall, criteriaTilePos.x + j, criteriaTilePos.y + i);
+                curMapNodes.Add(curMapNode);
 
-            // Add Wall
-            if (child.CompareTag("Start"))
-            {
-                startNode = newNode;
-                newNode.tile.SetColor(Color.red);
-            }
-            else if (child.CompareTag("End"))
-            {
-                endNode = newNode;
-                newNode.tile.SetColor(Color.blue);
-            }
-            else if (child.CompareTag("Wall"))
-            {
-                newNode.tile.SetColor(Color.black);
-            }
-            else
-            {
-                newNode.tile.SetColor(Color.white);
+                // 시작, 목표 노트 판별 후 대입
+                if (criteriaTilePos.x + j == transform.position.x && criteriaTilePos.y + i == transform.position.y)
+                {
+                    startNode = curMapNode;
+                }
+                else if (criteriaTilePos.x + j == playerComponent.moveTargetPos.x && criteriaTilePos.y + i == playerComponent.moveTargetPos.y)
+                {
+                    targetNode = curMapNode;
+                }
             }
         }
     }
-    #endregion
 
-
-    #region 도착 노드까지 가장 짧은 경로의 값을 반환 휴리스틱
+    /// <summary>
+    /// 휴리스틱 함수 (도착 노드까지 가장 짧은 경로의 값을 반환)
+    /// </summary>
+    /// <param name="_currPosition"> 현재 위치 노드 포지션 </param>
+    /// <param name="_endPosition"> 목표 위치 노드 포지션 </param>
+    /// <returns></returns>
     private int Heuristic(Vector2Int _currPosition, Vector2Int _endPosition)
     {
         int x = Mathf.Abs(_currPosition.x - _endPosition.x);
@@ -1106,48 +1099,24 @@ public class BasicEnemy : MonoBehaviour
         return MOVE_DIAGONAL_COST * Mathf.Min(x, y) + MOVE_STRAIGHT_COST * reming;
     }
 
-    #endregion
-
-
-    #region  리스트 중에 가장 짧은 F값을 가진 노드를 반환
-    private Node GetLowestFCost(List<Node> _pathList)
-    {
-        Node lowestNode = _pathList[0];
-
-        for (int i = 1; i < _pathList.Count; i++)
-        {
-            if (_pathList[i].fCost < lowestNode.fCost)
-            {
-                lowestNode = _pathList[i];
-            }
-        }
-        return lowestNode;
-    }
-
-
-    #endregion
-
+    /// <summary>
+    /// 경로 표시 함수(라인 그림)
+    /// </summary>
+    /// <param name="_node"> 경로 내의 현재 노드 </param>
     private void ShowPath(Node _node)
     {
         if (_node != null)
         {
-            if (_node == startNode)
-            {
-                _node.tile.SetColor(Color.red);
-            }
-            else if (_node == endNode)
-            {
-                _node.tile.SetColor(Color.blue);
-            }
-            else
-            {
-                _node.tile.SetColor(Color.cyan);
-            }
-
             if (_node.parentNode != null)
             {
-                Vector3 start = _node.tile.transform.position;
-                Vector3 end = _node.parentNode.tile.transform.position;
+                Vector3 start = Vector3.zero;
+                start.x = _node.nodePos.x;
+                start.y = _node.nodePos.y;
+
+                Vector3 end = Vector3.zero;
+                end.x = _node.parentNode.nodePos.x;
+                end.y = _node.parentNode.nodePos.y;
+
                 Debug.DrawLine(start, end, Color.yellow, 5);
             }
 
@@ -1157,13 +1126,13 @@ public class BasicEnemy : MonoBehaviour
 
     private void AddOpenList(Node _currentNode, Node _parentNode)
     {
-        int nextCost = _parentNode.gCost + Heuristic(_parentNode.position, _currentNode.position);
+        //int nextCost = _parentNode.gCost + Heuristic(_parentNode.nodePos, _currentNode.nodePos);
         //if (nextCost < _currentNode.gCost)
         // {
         _currentNode.parentNode = _parentNode;
-        _currentNode.gCost = _parentNode.gCost + Heuristic(_parentNode.position, _currentNode.position);
-        _currentNode.hCost = Heuristic(_currentNode.position, endNode.position);
-        openNodes.Add(_currentNode);
+        _currentNode.gCost = _parentNode.gCost + Heuristic(_parentNode.nodePos, _currentNode.nodePos);
+        _currentNode.hCost = Heuristic(_currentNode.nodePos, targetNode.nodePos);
+        openList.Add(_currentNode);
         // }
     }
 
