@@ -23,6 +23,18 @@ namespace GameServer
             }
         }
 
+        private static void SendTcpDataToAll(int _ExceptClient, Packet _Packet)
+        {
+            _Packet.WriteLength();
+            for(int i = 1; i <= Server.MaxPlayers; i++)
+            {
+                if(i != _ExceptClient)
+                {
+                    Server.Clients[i].MyTcp.SendData(_Packet);
+                }
+            }
+        }
+
         public static void Welcome(int _ToClient, string _Msg)
         {
             using(Packet _Packet = new Packet((int)ServerPackets.welcome))
