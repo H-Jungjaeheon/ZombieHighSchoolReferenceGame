@@ -44,7 +44,8 @@ namespace GameServer
                 ReceiveBuffer = new byte[DataBufferSize];
 
                 Stream.BeginRead(ReceiveBuffer, 0, DataBufferSize, ReceiveCallBack, null);
-                // TODO: 서버 입장 후 패킷 전송
+
+                ServerSend.Welcome(Id, "Welcome To The Server");
             }
 
             public void SendData(Packet _Packet)
