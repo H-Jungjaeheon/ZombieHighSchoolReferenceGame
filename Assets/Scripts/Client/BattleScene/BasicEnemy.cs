@@ -1,1322 +1,1322 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
-
-[System.Serializable]
-public class Node
-{
-    /// <summary>
-    /// 노드 생성자
-    /// </summary>
-    /// <param name="_isWall"> 현재 벽인지 판별 </param>
-    /// <param name="x"> 노드의 x 포지션 </param>
-    /// <param name="y"> 노드의 y 포지션 </param>
-    public Node(bool _isWall, int x, int y)
-    {
-        isWall = _isWall;
+//using system.collections;
+//using system.collections.generic;
+//using unityengine;
+//using unityengine.ui;
+
+//[system.serializable]
+//public class node
+//{
+//    /// <summary>
+//    /// 노드 생성자
+//    /// </summary>
+//    /// <param name="_iswall"> 현재 벽인지 판별 </param>
+//    /// <param name="x"> 노드의 x 포지션 </param>
+//    /// <param name="y"> 노드의 y 포지션 </param>
+//    public node(bool _iswall, int x, int y)
+//    {
+//        iswall = _iswall;
 
-        nodePos.x = x;
-        nodePos.y = y;
-    }
+//        nodepos.x = x;
+//        nodepos.y = y;
+//    }
 
-    [Tooltip("현재 노드가 벽인지 판별")]
-    public bool isWall;
+//    [tooltip("현재 노드가 벽인지 판별")]
+//    public bool iswall;
 
-    [Tooltip("현재 노드의 부모 노드(이전 노드)")]
-    public Node parentNode;
+//    [tooltip("현재 노드의 부모 노드(이전 노드)")]
+//    public node parentnode;
 
-    [Tooltip("현재 노드의 포지션")]
-    public Vector2Int nodePos;
+//    [tooltip("현재 노드의 포지션")]
+//    public vector2int nodepos;
 
-    [Tooltip("시작으로부터 이동한 거리")]
-    public int gCost;
-
-    [Tooltip("장애물을 무시한 목표까지의 거리 (가로, 세로)")]
-    public int hCost;
+//    [tooltip("시작으로부터 이동한 거리")]
+//    public int gcost;
+
+//    [tooltip("장애물을 무시한 목표까지의 거리 (가로, 세로)")]
+//    public int hcost;
 
-    public int fCost //g + h
-    {
-        get
-        {
-            return gCost + hCost;
-        }
-    }
-}
-public class BasicEnemy : MonoBehaviour
-{
-    [SerializeField]
-    [Tooltip("기본 적 정보(ScriptableObject)")]
-    protected EnemyData enemyData;
-
-    [Tooltip("체력")]
-    private int hp;
-
-    [SerializeField]
-    [Tooltip("체력바 이미지 컴포넌트")]
-    protected Image hpBarImg;
-
-    [SerializeField]
-    [Tooltip("SpriteRenderer 컴포넌트")]
-    protected SpriteRenderer sr;
-
-    [SerializeField]
-    [Tooltip("현재 감지한 플레이어의 Player 컴포넌트")]
-    protected Player playerComponent;
-
-    [Tooltip("코루틴 딜레이 : 0.1초")]
-    private WaitForSeconds zeroToOne = new WaitForSeconds(0.1f);
-
-    [Tooltip("현재 실행중인 타격 효과 코루틴")]
-    private IEnumerator hitEffectCoroutine;
-
-    #region 이동 관련 요소들 모음
-    [Header("이동 관련 요소들 모음")]
-
-    const int MOVE_STRAIGHT_COST = 10;
-    const int MOVE_DIAGONAL_COST = 14;
-
-    [Tooltip("현재 맵 크기 저장용 Vector")]
-    private Vector2Int mapSize;
-
-    [Tooltip("현재 맵 기준 타일 위치 Vector (맨 왼쪽 아래 타일)")]
-    private Vector2Int criteriaTilePos;
-
-    //[Tooltip("추격 후 플레이어 감지 범위")]
-    //private const int updateDetectedRange = 50;
-
-    [Tooltip("현재 노드가 벽인지 판별")]
-    private bool isWall;
-
-    [Tooltip("경로 탐색 시 시작 포지션")]
-    private Vector3 startPos;
-
-    [Tooltip("경로 탐색 시 목표 포지션")]
-    private Vector3 targetPos;
-
-    [Tooltip("최종 경로 노드 리스트")]
-    public List<Node> finalNodeList;
-
-    //[Tooltip("전체 경로 범위 노드 배열")]
-    //private Node[,] nodeArray = new Node[updateDetectedRange * 2 + 1, updateDetectedRange * 2 + 1];
-
-    [Tooltip("경로 시작 노드")]
-    private Node startNode;
-
-    [Tooltip("목적지 노드")]
-    private Node targetNode;
-
-    //[Tooltip("현재 경로 노드")]
-    //private Node curNode;
-
-    [Tooltip("경로 탐색 가능한 노드 리스트")]
-    private List<Node> openList = new List<Node>();
-
-    private List<Node> mapData = new List<Node>();
-
-    //[Tooltip("경로 탐색 완료한 노드 리스트")]
-    //private List<Node> closedList = new List<Node>();
-
-    [Tooltip("벽 태그")]
-    private const string WALL = "Wall";
-    #endregion
-
-    private void Awake()
-    {
-        StartSetting();
-    }
-
-    /// <summary>
-    /// 시작 세팅 함수
-    /// </summary>
-    private void StartSetting()
-    {
-        hp = enemyData.maxHp;
-
-        mapSize = new Vector2Int(87, 66); //게임 매니저에서 현재 스테이지에 맞는 맵 크기 받아오는 것으로 수정
-        criteriaTilePos = new Vector2Int(-35, -37);
-    }
-
-    /// <summary>
-    /// 피격 함수
-    /// </summary>
-    /// <param name="damage"> 받은 데미지 </param>
-    public void Hit(int damage)
-    {
-        hp -= damage;
-
-        hpBarImg.fillAmount = (float)hp / enemyData.maxHp;
-
-        if (hp <= 0)
-        {
-            Dead();
-        }
-        else 
-        {
-            if (hitEffectCoroutine != null)
-            {
-                StopCoroutine(hitEffectCoroutine);    
-            }
-
-            hitEffectCoroutine = HitEffect();
-            StartCoroutine(hitEffectCoroutine);
-        }
-    }
-
-    /// <summary>
-    /// 타격 효과 함수
-    /// </summary>
-    /// <returns></returns>
-    private IEnumerator HitEffect()
-    {
-        sr.color = Color.red;
-
-        yield return zeroToOne;
-
-        sr.color = Color.white;
-    }
-
-    /// <summary>
-    /// 사망 함수
-    /// </summary>
-    private void Dead()
-    {
-        StageManager.instance.PlusScore(enemyData.score);
-
-        Destroy(gameObject);
-    }
-
-    /// <summary>
-    /// 플레이어 감지 시작
-    /// </summary>
-    public virtual void DetectedPlayer(GameObject detectedPlayerObj)
-    {
-        if (playerComponent != null)
-        {
-            return;
-        }
-
-        playerComponent = detectedPlayerObj.GetComponent<Player>();
-
-        StartCoroutine(PathFind());
-    }
-
-    private IEnumerator PathFind()
-    {
-        WaitForSeconds pointZeroFiveSec = new WaitForSeconds(0.05f);
-
-        #region  초가화 
-
-        openList.Clear();
-        mapData.Clear();
-        MapSetting();
-
-        #endregion
-
-        startNode.gCost = 0;
-        startNode.hCost = Heuristic(startNode.position, endNode.position);
-        openList.Add(startNode);
-
-        // PAthFinding
-        while (openNodes.Count > 0)
-        {
-            Node currentNode = GetLowestFCost(openNodes);
-            openNodes.Remove(currentNode);
-
-
-            #region  시각화 하기 위한 곳 오픈 리스트에 들어간 노드를 초록으로 변경
-            if (currentNode != startNode)
-            {
-                currentNode.tile.SetColor(Color.green);
-            }
-            #endregion
-
-            if (currentNode == endNode) // 현재 노드가 끝 노드라면
-            {
-                print("Find");
-                ShowPath(endNode);
-                yield break;
-            }
-
-            if (currentNode.moveable == true)
-            {
-                Right(currentNode);
-                yield return pointZeroFiveSec;
-
-                Down(currentNode);
-                yield return pointZeroFiveSec;
-
-                Left(currentNode);
-                yield return pointZeroFiveSec;
-
-                Up(currentNode);
-                yield return pointZeroFiveSec;
-
-                RightUp(currentNode);
-                yield return pointZeroFiveSec;
-
-                RightDown(currentNode);
-                yield return pointZeroFiveSec;
-
-                LeftUP(currentNode);
-                yield return pointZeroFiveSec;
-
-                LeftDown(currentNode);
-                yield return pointZeroFiveSec;
-            }
-
-            currentNode.moveable = false;    // 한번 간 노드 
-
-            yield return pointZeroFiveSec;
-        }
-    }
-
-    #region  오른쪽 검사
-
-    private bool Right(Node _startNode, bool isMovealbe = false)
-    {
-        int x = _startNode.position.x;
-        int y = _startNode.position.y;
-
-        Node startNode = _startNode;
-        Node currentNode = startNode;
-
-        bool isFind = false;
-
-        while (currentNode.moveable == true)
-        {
-            currentNode.moveable = isMovealbe;
-
-            #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
-
-            if (Comp(x + 1, y) == false)   // 탐색 가능 여부
-            {
-                break;
-            }
-            currentNode = GetGrid(++x, y); // 다음 오른쪽 노드로 이동
-
-            if (currentNode.moveable == false)
-            {
-                break;
-            }
-
-            if (currentNode == this.endNode)
-            {
-                isFind = true;
-                if (isMovealbe == false)
-                {
-                    AddOpenList(currentNode, startNode);
-                }
-                break;
-            }
-
-            currentNode.tile.SetColor(Color.gray);
-
-            #endregion
-
-            #region 위쪽이 막혀 있으면서 오른쪽 위는 뚫려있는 경우
-
-            if (y + 1 < mapSize.y && x + 1 < mapSize.x)
-            {
-                if (GetGrid(x, y + 1).moveable == false) // 위쪽이 벽이면
-                {
-                    if (GetGrid(x + 1, y + 1).moveable == true) // 오른쪽 위가 막혀있지 않으면
-                    {
-                        if (isMovealbe == false)
-                        {
-                            AddOpenList(currentNode, startNode);
-                        }
-                        isFind = true;
-                        break; // 코너 발견하면 바로 종료
-                    }
-                }
-            }
-
-            #endregion
-
-            #region 위쪽이 막혀 있으면서 오른쪽 아래는 뚫려있는 경우
-
-            if (y > 0 && x + 1 < mapSize.x)
-            {
-                if (GetGrid(x, y - 1).moveable == false) // 아래쪽이 벽이고
-                {
-                    if (GetGrid(x + 1, y - 1).moveable == true) // 오른쪽 아래가 막혀 있지 않으면
-                    {
-                        if (isMovealbe == false)
-                        {
-                            AddOpenList(currentNode, startNode);
-                        }
-                        isFind = true;
-                        break; // 코너 발견하면 바로 종료
-                    }
-                }
-            }
-
-            #endregion
-        }
-
-        startNode.moveable = true;
-        return isFind;
-    }
-
-    #endregion
-
-
-    #region  왼쪽 검사
-
-    private bool Left(Node _startNode, bool _isMovealbe = false)
-    {
-        int x = _startNode.position.x;
-        int y = _startNode.position.y;
-
-        Node startNode = _startNode;
-        Node currentNode = startNode;
-
-        bool isFind = false;
-
-        while (currentNode.moveable == true)
-        {
-            currentNode.moveable = _isMovealbe;
-
-
-            #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
-
-            if (Comp(x - 1, y) == false)   // 탐색 가능 여부
-            {
-                break;
-            }
-
-            currentNode = GetGrid(--x, y); // 다음 왼쪽 노드로 이동
-            if (currentNode.moveable == false)
-            {
-                break;
-            }
-            currentNode.tile.SetColor(Color.gray);
-
-            if (currentNode == this.endNode)
-            {
-                isFind = true;
-
-                if (_isMovealbe == false)
-                {
-                    AddOpenList(currentNode, startNode);
-                }
-                break;
-            }
-
-            #endregion
-
-            #region 위쪽이 막혀 있으면서 왼쪽 위는 뚫려있는 경우
-
-            if (y + 1 < mapSize.y && x - 1 >= 0)
-            {
-                if (GetGrid(x, y + 1).moveable == false) // 위쪽이 벽이면
-                {
-                    if (GetGrid(x - 1, y + 1).moveable == true) // 왼쪽 위가 막혀있지 않으면
-                    {
-                        isFind = true;
-                        if (_isMovealbe == false)
-                        {
-                            AddOpenList(currentNode, startNode);
-                        }
-                        break; // 코너 발견하면 바로 종료
-                    }
-                }
-            }
-
-            #endregion
-
-            #region 위쪽이 막혀 있으면서 왼쪽 아래는 뚫려있는 경우
-
-            if (y > 0 && x - 1 >= 0)
-            {
-                if (GetGrid(x, y - 1).moveable == false) // 아래쪽이 벽이고
-                {
-                    if (GetGrid(x - 1, y - 1).moveable == true) // 왼쪽 아래가 막혀 있지 않으면
-                    {
-                        isFind = true;
-                        if (_isMovealbe == false)
-                        {
-                            AddOpenList(currentNode, startNode);
-                        }
-                        break; // 코너 발견하면 바로 종료
-                    }
-                }
-            }
-
-            #endregion
-        }
-
-        startNode.moveable = true;
-        return isFind;
-    }
-
-    #endregion
-
-
-    #region  위쪽 검사
-
-    private bool Up(Node _satrtNode, bool _isMovealbe = false)
-    {
-        int x = _satrtNode.position.x;
-        int y = _satrtNode.position.y;
-
-        Node startNode = _satrtNode;
-        Node currentNode = startNode;
-
-        bool isFind = false;
-
-        while (currentNode.moveable == true)
-        {
-            currentNode.moveable = _isMovealbe;
-
-            #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
-
-            if (Comp(x, y + 1) == false)   // 탐색 가능 여부
-            {
-                break;
-            }
-
-            currentNode = GetGrid(x, ++y); // 다음 왼쪽 노드로 이동
-            if (currentNode.moveable == false)
-            {
-                break;
-            }
-            currentNode.tile.SetColor(Color.gray);
-
-            if (currentNode == this.endNode)
-            {
-                isFind = true;
-                if (_isMovealbe == false)
-                {
-                    AddOpenList(currentNode, startNode);
-                }
-
-                break;
-            }
-
-            #endregion
-
-            #region 위쪽이 막혀 있으면서 왼쪽 위는 뚫려있는 경우
-
-            if (y + 1 < mapSize.y && x + 1 < mapSize.x)
-            {
-                if (GetGrid(x + 1, y).moveable == false) // 오른쪽이 벽이면
-                {
-                    if (GetGrid(x + 1, y + 1).moveable == true) // 오른쪽 위가
-                    {
-                        if (_isMovealbe == false)
-                        {
-                            AddOpenList(currentNode, startNode);
-                        }
-
-                        isFind = true;
-                        break; // 코너 발견하면 바로 종료
-                    }
-                }
-            }
-
-            #endregion
-
-            #region 위쪽이 막혀 있으면서 왼쪽 아래는 뚫려있는 경우
-
-            if (y + 1 < mapSize.y && x > 0)
-            {
-                if (GetGrid(x - 1, y).moveable == false) // 왼쪽이 벽이고
-                {
-                    if (GetGrid(x - 1, y + 1).moveable == true) // 왼쪽 위가 막혀 있지 않으면
-                    {
-                        if (_isMovealbe == false)
-                        {
-                            AddOpenList(currentNode, startNode);
-                        }
-
-                        isFind = true;
-                        break; // 코너 발견하면 바로 종료
-                    }
-                }
-            }
-
-            #endregion
-        }
-
-        _satrtNode.moveable = true;
-        return isFind;
-    }
-
-    #endregion
-
-
-    #region  아래쪽 검사
-
-    private bool Down(Node _satrtNode, bool _isMovealbe = false)
-    {
-        int x = _satrtNode.position.x;
-        int y = _satrtNode.position.y;
-
-        Node startNode = _satrtNode;
-        Node currentNode = startNode;
-
-        bool isFind = false;
-
-        while (currentNode.moveable == true)
-        {
-            currentNode.moveable = _isMovealbe;
-
-            #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
-
-            if (Comp(x, y - 1) == false)   // 탐색 가능 여부
-            {
-                break;
-            }
-
-            currentNode = GetGrid(x, --y); // 다음 왼쪽 노드로 이동
-            if (currentNode.moveable == false)
-            {
-                break;
-            }
-            currentNode.tile.SetColor(Color.gray);
-
-            if (currentNode == this.endNode)
-            {
-                isFind = true;
-                if (_isMovealbe == false)
-                {
-                    AddOpenList(currentNode, startNode);
-                }
-
-                break;
-            }
-
-            #endregion
-
-            #region 위쪽이 막혀 있으면서 왼쪽 위는 뚫려있는 경우
-
-            if (y > 0 && x + 1 < mapSize.x)
-            {
-                if (GetGrid(x + 1, y).moveable == false) // 오른쪽이 벽이면
-                {
-                    if (GetGrid(x + 1, y - 1).moveable == true) // 오른쪽 아래가 갈 수 있다면
-                    {
-                        isFind = true;
-                        if (_isMovealbe == false)
-                        {
-                            AddOpenList(currentNode, startNode);
-                        }
-
-                        break; // 코너 발견하면 바로 종료
-                    }
-                }
-            }
-
-            #endregion
-
-            #region 위쪽이 막혀 있으면서 왼쪽 아래는 뚫려있는 경우
-
-            if (y > 0 && x - 1 >= 0)
-            {
-                if (GetGrid(x - 1, y).moveable == false) // 왼쪽이 벽이고
-                {
-                    if (GetGrid(x - 1, y - 1).moveable == true) // 왼쪽 아래가 막혀 있지 않으면
-                    {
-                        isFind = true;
-                        if (_isMovealbe == false)
-                        {
-                            AddOpenList(currentNode, startNode);
-                        }
-
-                        break; // 코너 발견하면 바로 종료
-                    }
-                }
-            }
-
-            #endregion
-        }
-
-        _satrtNode.moveable = true;
-        return isFind;
-    }
-
-    #endregion
-
-
-    #region  오른쪽 위 대각선 검사
-
-    private void RightUp(Node _satrtNode)
-    {
-        int x = _satrtNode.position.x;
-        int y = _satrtNode.position.y;
-
-        Node startNode = _satrtNode;
-        Node currentNode = startNode;
-
-
-        while (currentNode.moveable == true)
-        {
-            currentNode.moveable = false;
-
-            #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
-
-            if (Comp(x + 1, y + 1) == false)   // 탐색 가능 여부
-            {
-                break;
-            }
-
+//    public int fcost //g + h
+//    {
+//        get
+//        {
+//            return gcost + hcost;
+//        }
+//    }
+//}
+//public class basicenemy : monobehaviour
+//{
+//    [serializefield]
+//    [tooltip("기본 적 정보(scriptableobject)")]
+//    protected enemydata enemydata;
+
+//    [tooltip("체력")]
+//    private int hp;
+
+//    [serializefield]
+//    [tooltip("체력바 이미지 컴포넌트")]
+//    protected image hpbarimg;
+
+//    [serializefield]
+//    [tooltip("spriterenderer 컴포넌트")]
+//    protected spriterenderer sr;
+
+//    [serializefield]
+//    [tooltip("현재 감지한 플레이어의 player 컴포넌트")]
+//    protected player playercomponent;
+
+//    [tooltip("코루틴 딜레이 : 0.1초")]
+//    private waitforseconds zerotoone = new waitforseconds(0.1f);
+
+//    [tooltip("현재 실행중인 타격 효과 코루틴")]
+//    private ienumerator hiteffectcoroutine;
+
+//    #region 이동 관련 요소들 모음
+//    [header("이동 관련 요소들 모음")]
+
+//    const int move_straight_cost = 10;
+//    const int move_diagonal_cost = 14;
+
+//    [tooltip("현재 맵 크기 저장용 vector")]
+//    private vector2int mapsize;
+
+//    [tooltip("현재 맵 기준 타일 위치 vector (맨 왼쪽 아래 타일)")]
+//    private vector2int criteriatilepos;
+
+//    //[tooltip("추격 후 플레이어 감지 범위")]
+//    //private const int updatedetectedrange = 50;
+
+//    [tooltip("현재 노드가 벽인지 판별")]
+//    private bool iswall;
+
+//    [tooltip("경로 탐색 시 시작 포지션")]
+//    private vector3 startpos;
+
+//    [tooltip("경로 탐색 시 목표 포지션")]
+//    private vector3 targetpos;
+
+//    [tooltip("최종 경로 노드 리스트")]
+//    public list<node> finalnodelist;
+
+//    //[tooltip("전체 경로 범위 노드 배열")]
+//    //private node[,] nodearray = new node[updatedetectedrange * 2 + 1, updatedetectedrange * 2 + 1];
+
+//    [tooltip("경로 시작 노드")]
+//    private node startnode;
+
+//    [tooltip("목적지 노드")]
+//    private node targetnode;
+
+//    //[tooltip("현재 경로 노드")]
+//    //private node curnode;
+
+//    [tooltip("경로 탐색 가능한 노드 리스트")]
+//    private list<node> openlist = new list<node>();
+
+//    private list<node> mapdata = new list<node>();
+
+//    //[tooltip("경로 탐색 완료한 노드 리스트")]
+//    //private list<node> closedlist = new list<node>();
+
+//    [tooltip("벽 태그")]
+//    private const string wall = "wall";
+//    #endregion
+
+//    private void awake()
+//    {
+//        startsetting();
+//    }
+
+//    /// <summary>
+//    /// 시작 세팅 함수
+//    /// </summary>
+//    private void startsetting()
+//    {
+//        hp = enemydata.maxhp;
+
+//        mapsize = new vector2int(87, 66); //게임 매니저에서 현재 스테이지에 맞는 맵 크기 받아오는 것으로 수정
+//        criteriatilepos = new vector2int(-35, -37);
+//    }
+
+//    /// <summary>
+//    /// 피격 함수
+//    /// </summary>
+//    /// <param name="damage"> 받은 데미지 </param>
+//    public void hit(int damage)
+//    {
+//        hp -= damage;
+
+//        hpbarimg.fillamount = (float)hp / enemydata.maxhp;
+
+//        if (hp <= 0)
+//        {
+//            dead();
+//        }
+//        else 
+//        {
+//            if (hiteffectcoroutine != null)
+//            {
+//                stopcoroutine(hiteffectcoroutine);    
+//            }
+
+//            hiteffectcoroutine = hiteffect();
+//            startcoroutine(hiteffectcoroutine);
+//        }
+//    }
+
+//    /// <summary>
+//    /// 타격 효과 함수
+//    /// </summary>
+//    /// <returns></returns>
+//    private ienumerator hiteffect()
+//    {
+//        sr.color = color.red;
+
+//        yield return zerotoone;
+
+//        sr.color = color.white;
+//    }
+
+//    /// <summary>
+//    /// 사망 함수
+//    /// </summary>
+//    private void dead()
+//    {
+//        stagemanager.instance.plusscore(enemydata.score);
+
+//        destroy(gameobject);
+//    }
+
+//    /// <summary>
+//    /// 플레이어 감지 시작
+//    /// </summary>
+//    public virtual void detectedplayer(gameobject detectedplayerobj)
+//    {
+//        if (playercomponent != null)
+//        {
+//            return;
+//        }
+
+//        playercomponent = detectedplayerobj.getcomponent<player>();
+
+//        startcoroutine(pathfind());
+//    }
+
+//    private ienumerator pathfind()
+//    {
+//        waitforseconds pointzerofivesec = new waitforseconds(0.05f);
+
+//        #region  초가화 
+
+//        openlist.clear();
+//        mapdata.clear();
+//        mapsetting();
+
+//        #endregion
+
+//        startnode.gcost = 0;
+//        startnode.hcost = heuristic(startnode.position, endnode.position);
+//        openlist.add(startnode);
+
+//        // pathfinding
+//        while (opennodes.count > 0)
+//        {
+//            node currentnode = getlowestfcost(opennodes);
+//            opennodes.remove(currentnode);
+
+
+//            #region  시각화 하기 위한 곳 오픈 리스트에 들어간 노드를 초록으로 변경
+//            if (currentnode != startnode)
+//            {
+//                currentnode.tile.setcolor(color.green);
+//            }
+//            #endregion
+
+//            if (currentnode == endnode) // 현재 노드가 끝 노드라면
+//            {
+//                print("find");
+//                showpath(endnode);
+//                yield break;
+//            }
+
+//            if (currentnode.moveable == true)
+//            {
+//                right(currentnode);
+//                yield return pointzerofivesec;
+
+//                down(currentnode);
+//                yield return pointzerofivesec;
+
+//                left(currentnode);
+//                yield return pointzerofivesec;
+
+//                up(currentnode);
+//                yield return pointzerofivesec;
+
+//                rightup(currentnode);
+//                yield return pointzerofivesec;
+
+//                rightdown(currentnode);
+//                yield return pointzerofivesec;
+
+//                leftup(currentnode);
+//                yield return pointzerofivesec;
+
+//                leftdown(currentnode);
+//                yield return pointzerofivesec;
+//            }
+
+//            currentnode.moveable = false;    // 한번 간 노드 
+
+//            yield return pointzerofivesec;
+//        }
+//    }
+
+//    #region  오른쪽 검사
+
+//    private bool right(node _startnode, bool ismovealbe = false)
+//    {
+//        int x = _startnode.position.x;
+//        int y = _startnode.position.y;
+
+//        node startnode = _startnode;
+//        node currentnode = startnode;
+
+//        bool isfind = false;
+
+//        while (currentnode.moveable == true)
+//        {
+//            currentnode.moveable = ismovealbe;
+
+//            #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
+
+//            if (comp(x + 1, y) == false)   // 탐색 가능 여부
+//            {
+//                break;
+//            }
+//            currentnode = getgrid(++x, y); // 다음 오른쪽 노드로 이동
+
+//            if (currentnode.moveable == false)
+//            {
+//                break;
+//            }
+
+//            if (currentnode == this.endnode)
+//            {
+//                isfind = true;
+//                if (ismovealbe == false)
+//                {
+//                    addopenlist(currentnode, startnode);
+//                }
+//                break;
+//            }
+
+//            currentnode.tile.setcolor(color.gray);
+
+//            #endregion
+
+//            #region 위쪽이 막혀 있으면서 오른쪽 위는 뚫려있는 경우
+
+//            if (y + 1 < mapsize.y && x + 1 < mapsize.x)
+//            {
+//                if (getgrid(x, y + 1).moveable == false) // 위쪽이 벽이면
+//                {
+//                    if (getgrid(x + 1, y + 1).moveable == true) // 오른쪽 위가 막혀있지 않으면
+//                    {
+//                        if (ismovealbe == false)
+//                        {
+//                            addopenlist(currentnode, startnode);
+//                        }
+//                        isfind = true;
+//                        break; // 코너 발견하면 바로 종료
+//                    }
+//                }
+//            }
+
+//            #endregion
+
+//            #region 위쪽이 막혀 있으면서 오른쪽 아래는 뚫려있는 경우
+
+//            if (y > 0 && x + 1 < mapsize.x)
+//            {
+//                if (getgrid(x, y - 1).moveable == false) // 아래쪽이 벽이고
+//                {
+//                    if (getgrid(x + 1, y - 1).moveable == true) // 오른쪽 아래가 막혀 있지 않으면
+//                    {
+//                        if (ismovealbe == false)
+//                        {
+//                            addopenlist(currentnode, startnode);
+//                        }
+//                        isfind = true;
+//                        break; // 코너 발견하면 바로 종료
+//                    }
+//                }
+//            }
+
+//            #endregion
+//        }
+
+//        startnode.moveable = true;
+//        return isfind;
+//    }
+
+//    #endregion
+
+
+//    #region  왼쪽 검사
+
+//    private bool left(node _startnode, bool _ismovealbe = false)
+//    {
+//        int x = _startnode.position.x;
+//        int y = _startnode.position.y;
+
+//        node startnode = _startnode;
+//        node currentnode = startnode;
+
+//        bool isfind = false;
+
+//        while (currentnode.moveable == true)
+//        {
+//            currentnode.moveable = _ismovealbe;
+
+
+//            #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
+
+//            if (comp(x - 1, y) == false)   // 탐색 가능 여부
+//            {
+//                break;
+//            }
+
+//            currentnode = getgrid(--x, y); // 다음 왼쪽 노드로 이동
+//            if (currentnode.moveable == false)
+//            {
+//                break;
+//            }
+//            currentnode.tile.setcolor(color.gray);
+
+//            if (currentnode == this.endnode)
+//            {
+//                isfind = true;
+
+//                if (_ismovealbe == false)
+//                {
+//                    addopenlist(currentnode, startnode);
+//                }
+//                break;
+//            }
+
+//            #endregion
+
+//            #region 위쪽이 막혀 있으면서 왼쪽 위는 뚫려있는 경우
+
+//            if (y + 1 < mapsize.y && x - 1 >= 0)
+//            {
+//                if (getgrid(x, y + 1).moveable == false) // 위쪽이 벽이면
+//                {
+//                    if (getgrid(x - 1, y + 1).moveable == true) // 왼쪽 위가 막혀있지 않으면
+//                    {
+//                        isfind = true;
+//                        if (_ismovealbe == false)
+//                        {
+//                            addopenlist(currentnode, startnode);
+//                        }
+//                        break; // 코너 발견하면 바로 종료
+//                    }
+//                }
+//            }
+
+//            #endregion
+
+//            #region 위쪽이 막혀 있으면서 왼쪽 아래는 뚫려있는 경우
+
+//            if (y > 0 && x - 1 >= 0)
+//            {
+//                if (getgrid(x, y - 1).moveable == false) // 아래쪽이 벽이고
+//                {
+//                    if (getgrid(x - 1, y - 1).moveable == true) // 왼쪽 아래가 막혀 있지 않으면
+//                    {
+//                        isfind = true;
+//                        if (_ismovealbe == false)
+//                        {
+//                            addopenlist(currentnode, startnode);
+//                        }
+//                        break; // 코너 발견하면 바로 종료
+//                    }
+//                }
+//            }
+
+//            #endregion
+//        }
+
+//        startnode.moveable = true;
+//        return isfind;
+//    }
+
+//    #endregion
+
+
+//    #region  위쪽 검사
+
+//    private bool up(node _satrtnode, bool _ismovealbe = false)
+//    {
+//        int x = _satrtnode.position.x;
+//        int y = _satrtnode.position.y;
+
+//        node startnode = _satrtnode;
+//        node currentnode = startnode;
+
+//        bool isfind = false;
+
+//        while (currentnode.moveable == true)
+//        {
+//            currentnode.moveable = _ismovealbe;
+
+//            #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
+
+//            if (comp(x, y + 1) == false)   // 탐색 가능 여부
+//            {
+//                break;
+//            }
+
+//            currentnode = getgrid(x, ++y); // 다음 왼쪽 노드로 이동
+//            if (currentnode.moveable == false)
+//            {
+//                break;
+//            }
+//            currentnode.tile.setcolor(color.gray);
+
+//            if (currentnode == this.endnode)
+//            {
+//                isfind = true;
+//                if (_ismovealbe == false)
+//                {
+//                    addopenlist(currentnode, startnode);
+//                }
+
+//                break;
+//            }
+
+//            #endregion
+
+//            #region 위쪽이 막혀 있으면서 왼쪽 위는 뚫려있는 경우
+
+//            if (y + 1 < mapsize.y && x + 1 < mapsize.x)
+//            {
+//                if (getgrid(x + 1, y).moveable == false) // 오른쪽이 벽이면
+//                {
+//                    if (getgrid(x + 1, y + 1).moveable == true) // 오른쪽 위가
+//                    {
+//                        if (_ismovealbe == false)
+//                        {
+//                            addopenlist(currentnode, startnode);
+//                        }
+
+//                        isfind = true;
+//                        break; // 코너 발견하면 바로 종료
+//                    }
+//                }
+//            }
+
+//            #endregion
+
+//            #region 위쪽이 막혀 있으면서 왼쪽 아래는 뚫려있는 경우
+
+//            if (y + 1 < mapsize.y && x > 0)
+//            {
+//                if (getgrid(x - 1, y).moveable == false) // 왼쪽이 벽이고
+//                {
+//                    if (getgrid(x - 1, y + 1).moveable == true) // 왼쪽 위가 막혀 있지 않으면
+//                    {
+//                        if (_ismovealbe == false)
+//                        {
+//                            addopenlist(currentnode, startnode);
+//                        }
+
+//                        isfind = true;
+//                        break; // 코너 발견하면 바로 종료
+//                    }
+//                }
+//            }
+
+//            #endregion
+//        }
+
+//        _satrtnode.moveable = true;
+//        return isfind;
+//    }
+
+//    #endregion
+
+
+//    #region  아래쪽 검사
+
+//    private bool down(node _satrtnode, bool _ismovealbe = false)
+//    {
+//        int x = _satrtnode.position.x;
+//        int y = _satrtnode.position.y;
+
+//        node startnode = _satrtnode;
+//        node currentnode = startnode;
+
+//        bool isfind = false;
+
+//        while (currentnode.moveable == true)
+//        {
+//            currentnode.moveable = _ismovealbe;
+
+//            #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
+
+//            if (comp(x, y - 1) == false)   // 탐색 가능 여부
+//            {
+//                break;
+//            }
+
+//            currentnode = getgrid(x, --y); // 다음 왼쪽 노드로 이동
+//            if (currentnode.moveable == false)
+//            {
+//                break;
+//            }
+//            currentnode.tile.setcolor(color.gray);
+
+//            if (currentnode == this.endnode)
+//            {
+//                isfind = true;
+//                if (_ismovealbe == false)
+//                {
+//                    addopenlist(currentnode, startnode);
+//                }
+
+//                break;
+//            }
+
+//            #endregion
+
+//            #region 위쪽이 막혀 있으면서 왼쪽 위는 뚫려있는 경우
+
+//            if (y > 0 && x + 1 < mapsize.x)
+//            {
+//                if (getgrid(x + 1, y).moveable == false) // 오른쪽이 벽이면
+//                {
+//                    if (getgrid(x + 1, y - 1).moveable == true) // 오른쪽 아래가 갈 수 있다면
+//                    {
+//                        isfind = true;
+//                        if (_ismovealbe == false)
+//                        {
+//                            addopenlist(currentnode, startnode);
+//                        }
+
+//                        break; // 코너 발견하면 바로 종료
+//                    }
+//                }
+//            }
+
+//            #endregion
+
+//            #region 위쪽이 막혀 있으면서 왼쪽 아래는 뚫려있는 경우
+
+//            if (y > 0 && x - 1 >= 0)
+//            {
+//                if (getgrid(x - 1, y).moveable == false) // 왼쪽이 벽이고
+//                {
+//                    if (getgrid(x - 1, y - 1).moveable == true) // 왼쪽 아래가 막혀 있지 않으면
+//                    {
+//                        isfind = true;
+//                        if (_ismovealbe == false)
+//                        {
+//                            addopenlist(currentnode, startnode);
+//                        }
+
+//                        break; // 코너 발견하면 바로 종료
+//                    }
+//                }
+//            }
+
+//            #endregion
+//        }
+
+//        _satrtnode.moveable = true;
+//        return isfind;
+//    }
+
+//    #endregion
+
+
+//    #region  오른쪽 위 대각선 검사
+
+//    private void rightup(node _satrtnode)
+//    {
+//        int x = _satrtnode.position.x;
+//        int y = _satrtnode.position.y;
+
+//        node startnode = _satrtnode;
+//        node currentnode = startnode;
+
+
+//        while (currentnode.moveable == true)
+//        {
+//            currentnode.moveable = false;
+
+//            #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
+
+//            if (comp(x + 1, y + 1) == false)   // 탐색 가능 여부
+//            {
+//                break;
+//            }
+
 
-
-            currentNode = GetGrid(++x, ++y); // 다음 왼쪽 노드로 이동
-
-            if (currentNode.moveable == false)
-            {
-                break;
-            }
-
-            if (currentNode == this.endNode)
-            {
-                AddOpenList(currentNode, startNode);
+
+//            currentnode = getgrid(++x, ++y); // 다음 왼쪽 노드로 이동
+
+//            if (currentnode.moveable == false)
+//            {
+//                break;
+//            }
+
+//            if (currentnode == this.endnode)
+//            {
+//                addopenlist(currentnode, startnode);
 
-                break;
-            }
+//                break;
+//            }
 
-            currentNode.tile.SetColor(Color.gray);
+//            currentnode.tile.setcolor(color.gray);
 
-            #endregion
+//            #endregion
 
-            #region 왼쪽이 막혀 있으면서 왼쪽 위가 막혀있지 않은 경우
+//            #region 왼쪽이 막혀 있으면서 왼쪽 위가 막혀있지 않은 경우
 
-            if (y + 1 < mapSize.y && x > 0)
-            {
-                if (GetGrid(x - 1, y).moveable == false) // 왼쪽이 막힘
-                {
-                    if (GetGrid(x - 1, y + 1).moveable == true) // 왼쪽 위가 안막힘
-                    {
-                        AddOpenList(currentNode, startNode);
-
-                        break; // 코너 발견하면 바로 종료
-                    }
-                }
-            }
+//            if (y + 1 < mapsize.y && x > 0)
+//            {
+//                if (getgrid(x - 1, y).moveable == false) // 왼쪽이 막힘
+//                {
+//                    if (getgrid(x - 1, y + 1).moveable == true) // 왼쪽 위가 안막힘
+//                    {
+//                        addopenlist(currentnode, startnode);
+
+//                        break; // 코너 발견하면 바로 종료
+//                    }
+//                }
+//            }
 
-            #endregion
+//            #endregion
 
-            #region 아래가 막혀 있으면서 오른쪽 아래가 안막혔으면
+//            #region 아래가 막혀 있으면서 오른쪽 아래가 안막혔으면
 
-            if (y > 0 && x + 1 < mapSize.x)
-            {
-                if (GetGrid(x, y - 1).moveable == false) // 왼쪽이 벽이고
-                {
-                    if (GetGrid(x + 1, y - 1).moveable == true) // 왼쪽 아래가 막혀 있지 않으면
-                    {
-                        AddOpenList(currentNode, startNode);
-
-                        break; // 코너 발견하면 바로 종료
-                    }
-                }
-            }
+//            if (y > 0 && x + 1 < mapsize.x)
+//            {
+//                if (getgrid(x, y - 1).moveable == false) // 왼쪽이 벽이고
+//                {
+//                    if (getgrid(x + 1, y - 1).moveable == true) // 왼쪽 아래가 막혀 있지 않으면
+//                    {
+//                        addopenlist(currentnode, startnode);
+
+//                        break; // 코너 발견하면 바로 종료
+//                    }
+//                }
+//            }
 
 
-            #endregion
+//            #endregion
 
-            if (Right(currentNode, true) == true)
-            {
-                AddOpenList(currentNode, startNode);
+//            if (right(currentnode, true) == true)
+//            {
+//                addopenlist(currentnode, startnode);
 
-                break;
-            }
+//                break;
+//            }
 
-            if (Up(currentNode, true) == true)
-            {
-                AddOpenList(currentNode, startNode);
+//            if (up(currentnode, true) == true)
+//            {
+//                addopenlist(currentnode, startnode);
 
-                break;
-            }
-        }
+//                break;
+//            }
+//        }
 
-        _satrtNode.moveable = true;
-    }
+//        _satrtnode.moveable = true;
+//    }
 
-    #endregion
+//    #endregion
 
 
-    #region  오른쪽 아래 대각선 검사
+//    #region  오른쪽 아래 대각선 검사
 
-    private void RightDown(Node _satrtNode)
-    {
-        int x = _satrtNode.position.x;
-        int y = _satrtNode.position.y;
+//    private void rightdown(node _satrtnode)
+//    {
+//        int x = _satrtnode.position.x;
+//        int y = _satrtnode.position.y;
 
-        Node startNode = _satrtNode;
-        Node currentNode = startNode;
+//        node startnode = _satrtnode;
+//        node currentnode = startnode;
 
-        while (currentNode.moveable == true)
-        {
+//        while (currentnode.moveable == true)
+//        {
 
-            currentNode.moveable = false;
+//            currentnode.moveable = false;
 
-            #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
+//            #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
 
-            if (Comp(x + 1, y - 1) == false)   // 탐색 가능 여부
-            {
-                break;
-            }
+//            if (comp(x + 1, y - 1) == false)   // 탐색 가능 여부
+//            {
+//                break;
+//            }
 
-            currentNode = GetGrid(++x, --y); // 다음 왼쪽 노드로 이동
+//            currentnode = getgrid(++x, --y); // 다음 왼쪽 노드로 이동
 
-            if (currentNode.moveable == false)
-            {
-                break;
-            }
+//            if (currentnode.moveable == false)
+//            {
+//                break;
+//            }
 
-            if (currentNode == this.endNode)
-            {
-                AddOpenList(currentNode, startNode);
+//            if (currentnode == this.endnode)
+//            {
+//                addopenlist(currentnode, startnode);
 
-                break;
-            }
+//                break;
+//            }
 
-            currentNode.tile.SetColor(Color.gray);
+//            currentnode.tile.setcolor(color.gray);
 
-            #endregion
+//            #endregion
 
-            #region 왼쪽이 막혀있고 왼쪽 아래가 막혀 있지 않으면
+//            #region 왼쪽이 막혀있고 왼쪽 아래가 막혀 있지 않으면
 
-            if (y > 0 && x > 0)
-            {
-                if (GetGrid(x - 1, y).moveable == false) // 왼쪽이 막힘
-                {
-                    if (GetGrid(x - 1, y - 1).moveable == true) // 왼쪽 위가 안막힘
-                    {
-                        AddOpenList(currentNode, startNode);
+//            if (y > 0 && x > 0)
+//            {
+//                if (getgrid(x - 1, y).moveable == false) // 왼쪽이 막힘
+//                {
+//                    if (getgrid(x - 1, y - 1).moveable == true) // 왼쪽 위가 안막힘
+//                    {
+//                        addopenlist(currentnode, startnode);
 
-                        break; // 코너 발견하면 바로 종료
-                    }
-                }
-            }
+//                        break; // 코너 발견하면 바로 종료
+//                    }
+//                }
+//            }
 
-            #endregion
+//            #endregion
 
-            #region 위쪽이 막혀있고 오른쪽 위가 막혀있지 않으면
+//            #region 위쪽이 막혀있고 오른쪽 위가 막혀있지 않으면
 
-            if (y + 1 < mapSize.y && x + 1 < mapSize.x)
-            {
-                if (GetGrid(x, y + 1).moveable == false) // 위쪽이 벽이고
-                {
-                    if (GetGrid(x + 1, y + 1).moveable == true) // 오른쪽 위가 막혀있지 않으면
-                    {
-                        AddOpenList(currentNode, startNode);
+//            if (y + 1 < mapsize.y && x + 1 < mapsize.x)
+//            {
+//                if (getgrid(x, y + 1).moveable == false) // 위쪽이 벽이고
+//                {
+//                    if (getgrid(x + 1, y + 1).moveable == true) // 오른쪽 위가 막혀있지 않으면
+//                    {
+//                        addopenlist(currentnode, startnode);
 
-                        break; // 코너 발견하면 바로 종료
-                    }
-                }
-            }
+//                        break; // 코너 발견하면 바로 종료
+//                    }
+//                }
+//            }
 
 
-            #endregion
+//            #endregion
 
-            if (Right(currentNode, true) == true)
-            {
-                AddOpenList(currentNode, startNode);
+//            if (right(currentnode, true) == true)
+//            {
+//                addopenlist(currentnode, startnode);
 
-                break;
-            }
+//                break;
+//            }
 
-            if (Down(currentNode, true) == true)
-            {
-                AddOpenList(currentNode, startNode);
+//            if (down(currentnode, true) == true)
+//            {
+//                addopenlist(currentnode, startnode);
 
-                break;
-            }
-        }
+//                break;
+//            }
+//        }
 
-        _satrtNode.moveable = true;
-    }
+//        _satrtnode.moveable = true;
+//    }
 
-    #endregion
+//    #endregion
 
 
-    #region  왼쪽 위 대각선 검사
+//    #region  왼쪽 위 대각선 검사
 
-    private void LeftUP(Node _satrtNode)
-    {
-        int x = _satrtNode.position.x;
-        int y = _satrtNode.position.y;
+//    private void leftup(node _satrtnode)
+//    {
+//        int x = _satrtnode.position.x;
+//        int y = _satrtnode.position.y;
 
-        Node startNode = _satrtNode;
-        Node currentNode = startNode;
+//        node startnode = _satrtnode;
+//        node currentnode = startnode;
 
 
-        while (currentNode.moveable == true)
-        {
-            currentNode.moveable = false;
+//        while (currentnode.moveable == true)
+//        {
+//            currentnode.moveable = false;
 
-            #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
+//            #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
 
-            if (Comp(x - 1, y + 1) == false)   // 탐색 가능 여부
-            {
-                break;
-            }
+//            if (comp(x - 1, y + 1) == false)   // 탐색 가능 여부
+//            {
+//                break;
+//            }
 
-            currentNode = GetGrid(--x, ++y); // 다음 왼쪽 노드로 이동
+//            currentnode = getgrid(--x, ++y); // 다음 왼쪽 노드로 이동
 
-            if (currentNode.moveable == false)
-            {
-                break;
-            }
+//            if (currentnode.moveable == false)
+//            {
+//                break;
+//            }
 
-            if (currentNode == this.endNode)
-            {
-                AddOpenList(currentNode, startNode);
+//            if (currentnode == this.endnode)
+//            {
+//                addopenlist(currentnode, startnode);
 
-                break;
-            }
+//                break;
+//            }
 
-            currentNode.tile.SetColor(Color.gray);
+//            currentnode.tile.setcolor(color.gray);
 
-            #endregion
+//            #endregion
 
-            #region 오른쪽이 막혀있고 오른쪽 위가 막혀있지 않으면
+//            #region 오른쪽이 막혀있고 오른쪽 위가 막혀있지 않으면
 
-            if (y + 1 < mapSize.y && x + 1 < mapSize.x)
-            {
-                if (GetGrid(x + 1, y).moveable == false) // 오른쪽이 막힘
-                {
-                    if (GetGrid(x + 1, y + 1).moveable == true) // 오른쪽 위가 안막힘
-                    {
-                        AddOpenList(currentNode, startNode);
+//            if (y + 1 < mapsize.y && x + 1 < mapsize.x)
+//            {
+//                if (getgrid(x + 1, y).moveable == false) // 오른쪽이 막힘
+//                {
+//                    if (getgrid(x + 1, y + 1).moveable == true) // 오른쪽 위가 안막힘
+//                    {
+//                        addopenlist(currentnode, startnode);
 
-                        break; // 코너 발견하면 바로 종료
-                    }
-                }
-            }
+//                        break; // 코너 발견하면 바로 종료
+//                    }
+//                }
+//            }
 
-            #endregion
+//            #endregion
 
-            #region 아래가 막혀있고 왼쪽 아래가 막혀있지 않으면
+//            #region 아래가 막혀있고 왼쪽 아래가 막혀있지 않으면
 
-            if (y > 0 && x > 0)
-            {
-                if (GetGrid(x, y - 1).moveable == false) // 아래가 벽
-                {
-                    if (GetGrid(x - 1, y - 1).moveable == true) // 왼쪽 아래가 안막힘
-                    {
-                        AddOpenList(currentNode, startNode);
+//            if (y > 0 && x > 0)
+//            {
+//                if (getgrid(x, y - 1).moveable == false) // 아래가 벽
+//                {
+//                    if (getgrid(x - 1, y - 1).moveable == true) // 왼쪽 아래가 안막힘
+//                    {
+//                        addopenlist(currentnode, startnode);
 
-                        break; // 코너 발견하면 바로 종료
-                    }
-                }
-            }
+//                        break; // 코너 발견하면 바로 종료
+//                    }
+//                }
+//            }
 
 
-            #endregion
+//            #endregion
 
-            if (Left(currentNode, true) == true)
-            {
-                AddOpenList(currentNode, startNode);
+//            if (left(currentnode, true) == true)
+//            {
+//                addopenlist(currentnode, startnode);
 
-                break;
-            }
+//                break;
+//            }
 
-            if (Up(currentNode, true) == true)
-            {
-                AddOpenList(currentNode, startNode);
+//            if (up(currentnode, true) == true)
+//            {
+//                addopenlist(currentnode, startnode);
 
-                break;
-            }
-        }
+//                break;
+//            }
+//        }
 
-        _satrtNode.moveable = true;
-    }
+//        _satrtnode.moveable = true;
+//    }
 
-    #endregion
+//    #endregion
 
-    #region  왼쪽 아래 대각선 검사
+//    #region  왼쪽 아래 대각선 검사
 
-    private void LeftDown(Node _satrtNode)
-    {
-        int x = _satrtNode.position.x;
-        int y = _satrtNode.position.y;
+//    private void leftdown(node _satrtnode)
+//    {
+//        int x = _satrtnode.position.x;
+//        int y = _satrtnode.position.y;
 
-        Node startNode = _satrtNode;
-        Node currentNode = startNode;
+//        node startnode = _satrtnode;
+//        node currentnode = startnode;
 
 
-        while (currentNode.moveable == true)
-        {
-            currentNode.moveable = false;
+//        while (currentnode.moveable == true)
+//        {
+//            currentnode.moveable = false;
 
-            #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
+//            #region 맵 사이즈가 넘어가는지 안 넘어가지는지를 체크
 
-            if (Comp(x - 1, y - 1) == false)   // 탐색 가능 여부
-            {
-                break;
-            }
+//            if (comp(x - 1, y - 1) == false)   // 탐색 가능 여부
+//            {
+//                break;
+//            }
 
-            currentNode = GetGrid(--x, --y); // 다음 왼쪽 노드로 이동
+//            currentnode = getgrid(--x, --y); // 다음 왼쪽 노드로 이동
 
-            if (currentNode.moveable == false)
-            {
-                break;
-            }
+//            if (currentnode.moveable == false)
+//            {
+//                break;
+//            }
 
-            if (currentNode == this.endNode)
-            {
-                AddOpenList(currentNode, startNode);
+//            if (currentnode == this.endnode)
+//            {
+//                addopenlist(currentnode, startnode);
 
-                break;
-            }
+//                break;
+//            }
 
-            currentNode.tile.SetColor(Color.gray);
+//            currentnode.tile.setcolor(color.gray);
 
-            #endregion
+//            #endregion
 
-            #region 오른쪽이 막혀있고 오른쪽 위가 막혀있지 않으면
+//            #region 오른쪽이 막혀있고 오른쪽 위가 막혀있지 않으면
 
-            if (y > 0 && x + 1 < mapSize.x)
-            {
-                if (GetGrid(x + 1, y).moveable == false) // 오른쪽이 막힘
-                {
-                    if (GetGrid(x + 1, y - 1).moveable == true) //오른쪽 아래가 안 막힘
-                    {
-                        AddOpenList(currentNode, startNode);
+//            if (y > 0 && x + 1 < mapsize.x)
+//            {
+//                if (getgrid(x + 1, y).moveable == false) // 오른쪽이 막힘
+//                {
+//                    if (getgrid(x + 1, y - 1).moveable == true) //오른쪽 아래가 안 막힘
+//                    {
+//                        addopenlist(currentnode, startnode);
 
-                        break; // 코너 발견하면 바로 종료
-                    }
-                }
-            }
+//                        break; // 코너 발견하면 바로 종료
+//                    }
+//                }
+//            }
 
-            #endregion
+//            #endregion
 
-            #region 아래가 막혀있고 왼쪽 아래가 막혀있지 않으면
+//            #region 아래가 막혀있고 왼쪽 아래가 막혀있지 않으면
 
-            if (y + 1 < mapSize.y && x < 0)
-            {
-                if (GetGrid(x, y + 1).moveable == false) // 위가 막힘
-                {
-                    if (GetGrid(x - 1, y + 1).moveable == true) // 왼쪽 위가 안막힘
-                    {
-                        AddOpenList(currentNode, startNode);
+//            if (y + 1 < mapsize.y && x < 0)
+//            {
+//                if (getgrid(x, y + 1).moveable == false) // 위가 막힘
+//                {
+//                    if (getgrid(x - 1, y + 1).moveable == true) // 왼쪽 위가 안막힘
+//                    {
+//                        addopenlist(currentnode, startnode);
 
-                        break; // 코너 발견하면 바로 종료
-                    }
-                }
-            }
+//                        break; // 코너 발견하면 바로 종료
+//                    }
+//                }
+//            }
 
 
-            #endregion
+//            #endregion
 
-            if (Left(currentNode, true) == true)
-            {
-                AddOpenList(currentNode, startNode);
+//            if (left(currentnode, true) == true)
+//            {
+//                addopenlist(currentnode, startnode);
 
-                break;
-            }
+//                break;
+//            }
 
-            if (Down(currentNode, true) == true)
-            {
-                AddOpenList(currentNode, startNode);
+//            if (down(currentnode, true) == true)
+//            {
+//                addopenlist(currentnode, startnode);
 
-                break;
-            }
-        }
+//                break;
+//            }
+//        }
 
-        _satrtNode.moveable = true;
-    }
+//        _satrtnode.moveable = true;
+//    }
 
-    #endregion
+//    #endregion
 
-    #region  탐색 가능 여부
-    private bool Comp(int _x, int _y)
-    {
-        if (_x < 0 || _y < 0 || _x >= mapSize.x || _y >= mapSize.y)
-        {
-            return false;
-        }
-        return true;
-    }
-    #endregion
+//    #region  탐색 가능 여부
+//    private bool comp(int _x, int _y)
+//    {
+//        if (_x < 0 || _y < 0 || _x >= mapsize.x || _y >= mapsize.y)
+//        {
+//            return false;
+//        }
+//        return true;
+//    }
+//    #endregion
 
 
-    #region 리스트 안에 있는 노드를 X와 y좌표 값으로 반환
+//    #region 리스트 안에 있는 노드를 x와 y좌표 값으로 반환
 
-    private Node GetGrid(int _x, int _y)
-    {
-        return mapData[_x + _y * mapSize.x];
-    }
+//    private node getgrid(int _x, int _y)
+//    {
+//        return mapdata[_x + _y * mapsize.x];
+//    }
 
-    #endregion
+//    #endregion
 
 
-    /// <summary>
-    /// 맵 세팅 함수
-    /// </summary>
-    private void MapSetting()
-    {
-        int x; //
-        int y;
+//    /// <summary>
+//    /// 맵 세팅 함수
+//    /// </summary>
+//    private void mapsetting()
+//    {
+//        int x; //
+//        int y;
 
-        Node newNode;
+//        node newnode;
 
-        for (int i = 0; i < mapSize.y; i++)
-        {
-            for (int j = 0; j < mapSize.x; j++)
-            {
-                foreach (Collider2D collider in Physics2D.OverlapCircleAll(new Vector2(startPos.x + i, startPos.y + j), 0.2f))
-                {
-                    if (collider.gameObject.CompareTag(WALL))
-                    {
-                        isWall = true;
-                    }
-                }
-
-                newNode = new Node(isWall, criteriaTilePos.x + i, criteriaTilePos.y);
-                mapData.Add(newNode);
-            }
-
-            // Add Wall
-            if (child.CompareTag("Start"))
-            {
-                startNode = newNode;
-                newNode.tile.SetColor(Color.red);
-            }
-            else if (child.CompareTag("End"))
-            {
-                endNode = newNode;
-                newNode.tile.SetColor(Color.blue);
-            }
-            else if (child.CompareTag("Wall"))
-            {
-                newNode.tile.SetColor(Color.black);
-            }
-            else
-            {
-                newNode.tile.SetColor(Color.white);
-            }
-        }
-    }
-    #endregion
-
-
-    #region 도착 노드까지 가장 짧은 경로의 값을 반환 휴리스틱
-    private int Heuristic(Vector2Int _currPosition, Vector2Int _endPosition)
-    {
-        int x = Mathf.Abs(_currPosition.x - _endPosition.x);
-        int y = Mathf.Abs(_currPosition.y - _endPosition.y);
-        int reming = Mathf.Abs(x - y);
-
-        return MOVE_DIAGONAL_COST * Mathf.Min(x, y) + MOVE_STRAIGHT_COST * reming;
-    }
+//        for (int i = 0; i < mapsize.y; i++)
+//        {
+//            for (int j = 0; j < mapsize.x; j++)
+//            {
+//                foreach (collider2d collider in physics2d.overlapcircleall(new vector2(startpos.x + i, startpos.y + j), 0.2f))
+//                {
+//                    if (collider.gameobject.comparetag(wall))
+//                    {
+//                        iswall = true;
+//                    }
+//                }
+
+//                newnode = new node(iswall, criteriatilepos.x + i, criteriatilepos.y);
+//                mapdata.add(newnode);
+//            }
+
+//            // add wall
+//            if (child.comparetag("start"))
+//            {
+//                startnode = newnode;
+//                newnode.tile.setcolor(color.red);
+//            }
+//            else if (child.comparetag("end"))
+//            {
+//                endnode = newnode;
+//                newnode.tile.setcolor(color.blue);
+//            }
+//            else if (child.comparetag("wall"))
+//            {
+//                newnode.tile.setcolor(color.black);
+//            }
+//            else
+//            {
+//                newnode.tile.setcolor(color.white);
+//            }
+//        }
+//    }
+//    #endregion
+
+
+//    #region 도착 노드까지 가장 짧은 경로의 값을 반환 휴리스틱
+//    private int heuristic(vector2int _currposition, vector2int _endposition)
+//    {
+//        int x = mathf.abs(_currposition.x - _endposition.x);
+//        int y = mathf.abs(_currposition.y - _endposition.y);
+//        int reming = mathf.abs(x - y);
+
+//        return move_diagonal_cost * mathf.min(x, y) + move_straight_cost * reming;
+//    }
 
-    #endregion
-
-
-    #region  리스트 중에 가장 짧은 F값을 가진 노드를 반환
-    private Node GetLowestFCost(List<Node> _pathList)
-    {
-        Node lowestNode = _pathList[0];
+//    #endregion
+
+
+//    #region  리스트 중에 가장 짧은 f값을 가진 노드를 반환
+//    private node getlowestfcost(list<node> _pathlist)
+//    {
+//        node lowestnode = _pathlist[0];
 
-        for (int i = 1; i < _pathList.Count; i++)
-        {
-            if (_pathList[i].fCost < lowestNode.fCost)
-            {
-                lowestNode = _pathList[i];
-            }
-        }
-        return lowestNode;
-    }
-
-
-    #endregion
-
-    private void ShowPath(Node _node)
-    {
-        if (_node != null)
-        {
-            if (_node == startNode)
-            {
-                _node.tile.SetColor(Color.red);
-            }
-            else if (_node == endNode)
-            {
-                _node.tile.SetColor(Color.blue);
-            }
-            else
-            {
-                _node.tile.SetColor(Color.cyan);
-            }
-
-            if (_node.parentNode != null)
-            {
-                Vector3 start = _node.tile.transform.position;
-                Vector3 end = _node.parentNode.tile.transform.position;
-                Debug.DrawLine(start, end, Color.yellow, 5);
-            }
-
-            ShowPath(_node.parentNode);
-        }
-    }
-
-    private void AddOpenList(Node _currentNode, Node _parentNode)
-    {
-        int nextCost = _parentNode.gCost + Heuristic(_parentNode.position, _currentNode.position);
-        //if (nextCost < _currentNode.gCost)
-        // {
-        _currentNode.parentNode = _parentNode;
-        _currentNode.gCost = _parentNode.gCost + Heuristic(_parentNode.position, _currentNode.position);
-        _currentNode.hCost = Heuristic(_currentNode.position, endNode.position);
-        openNodes.Add(_currentNode);
-        // }
-    }
-
-    ///// <summary>
-    ///// 경로 탐색 함수
-    ///// </summary>
-    //public void PathFinding()
-    //{
-    //    startPos = transform.position;
-    //    targetPos = playerComponent.moveTargetPos;
-
-    //    for (int i = -updateDetectedRange; i <= updateDetectedRange; i++) //플레이어 추격 범위만큼 노드 세팅
-    //    {
-    //        for (int j = -updateDetectedRange; j <= updateDetectedRange; j++)
-    //        {
-    //            isWall = false;
-
-    //            foreach (Collider2D collider in Physics2D.OverlapCircleAll(new Vector2(startPos.x + i, startPos.y + j), 0.2f))
-    //            {
-    //                if (collider.gameObject.CompareTag(WALL))
-    //                {
-    //                    isWall = true;
-    //                }
-    //            }
-
-    //            nodeArray[i + updateDetectedRange, j + updateDetectedRange] = new Node(isWall, (int)startPos.x + i, (int)startPos.y + j);
-    //        }
-    //    }
-
-    //    startNode = nodeArray[updateDetectedRange, updateDetectedRange];
-
-    //    targetNode = nodeArray[(int)targetPos.x - (int)startPos.x + updateDetectedRange, (int)targetPos.y - (int)startPos.y + updateDetectedRange];
-
-    //    openList.Clear();
-
-    //    openList.Add(startNode);
-
-    //    closedList.Clear();
-
-    //    finalNodeList.Clear();
-
-    //    while (openList.Count > 0)
-    //    {
-    //        // 오픈리스트 중 가장 f가 작은 것, f가 같다면 h가 작은 것, h도 같다면 0번째 것을 현재노드로 하고 열린리스트에서 닫힌리스트로 옮기기
-    //        curNode = openList[0];
-
-    //        openList.Remove(curNode);
-    //        closedList.Add(curNode);
-
-    //        for (int i = 0; i < openList.Count; i++)
-    //        {
-    //            if (openList[i].fCost <= curNode.fCost && openList[i].hCost < curNode.hCost)
-    //            {
-    //                curNode = openList[i];
-    //            }
-    //        }
-
-    //        // 마지막
-    //        if (curNode == targetNode)
-    //        {
-    //            Node TargetCurNode = targetNode;
-
-    //            while (TargetCurNode != startNode)
-    //            {
-    //                finalNodeList.Add(TargetCurNode);
-    //                TargetCurNode = TargetCurNode.parentNode;
-    //            }
-
-    //            finalNodeList.Add(startNode);
-    //            finalNodeList.Reverse();
-
-    //            StartCoroutine(Move());
-
-    //            return;
-    //        }
-
-    //        OpenListAdd(curNode.xPos, curNode.yPos + 1);
-    //        OpenListAdd(curNode.xPos + 1, curNode.yPos);
-    //        OpenListAdd(curNode.xPos, curNode.yPos - 1);
-    //        OpenListAdd(curNode.xPos - 1, curNode.yPos);
-    //    }
-    //}
-
-    ///// <summary>
-    ///// 진행 가능한 경로의 노드들 오픈리스트 추가 함수
-    ///// </summary>
-    ///// <param name="checkX"></param>
-    ///// <param name="checkY"></param>
-    //private void OpenListAdd(int checkX, int checkY)
-    //{
-    //    //감지 범위를 벗어나지 않고, 벽이 아니면서, 닫힌리스트에 없다면
-    //    if (checkX >= startPos.x - updateDetectedRange && checkX <= startPos.x + updateDetectedRange
-    //        && checkY >= startPos.y - updateDetectedRange && checkY <= startPos.y + updateDetectedRange
-    //        && nodeArray[(int)(checkX - startPos.x) + updateDetectedRange, (int)(checkY - startPos.y) + updateDetectedRange].isWall == false
-    //        && closedList.Contains(nodeArray[(int)(checkX - startPos.x) + updateDetectedRange, (int)(checkY - startPos.y) + updateDetectedRange]) == false)
-    //    {
-    //        // 이웃노드에 넣기
-    //        Node neighborNode = nodeArray[(int)(checkX - startPos.x) + updateDetectedRange, (int)(checkY - startPos.y) + updateDetectedRange];
-    //        int moveCost = 10;
-
-    //        // 이동비용이 이웃노드 g보다 작거나 또는 열린리스트에 이웃노드가 없다면 g, h, ParentNode를 설정 후 열린리스트에 추가
-    //        if (moveCost < neighborNode.gCost || openList.Contains(neighborNode) == false)
-    //        {
-    //            neighborNode.gCost = moveCost;
-    //            neighborNode.hCost = (Mathf.Abs(neighborNode.xPos - targetNode.xPos) + Mathf.Abs(neighborNode.yPos - targetNode.yPos)) * 10;
-    //            neighborNode.parentNode = curNode;
-
-    //            openList.Add(neighborNode);
-    //        }
-    //    }
-    //}
-
-    ///// <summary>
-    ///// 움직임 함수
-    ///// </summary>
-    //public IEnumerator Move()
-    //{
-    //    Vector2 curTargetPos;
-
-    //    for (int nowIndex = 0; nowIndex < finalNodeList.Count; nowIndex++)
-    //    {
-    //        curTargetPos.x = finalNodeList[nowIndex].xPos;
-    //        curTargetPos.y = finalNodeList[nowIndex].yPos;
-
-    //        while (true)
-    //        {
-    //            if (transform.position.x == curTargetPos.x && transform.position.y == curTargetPos.y)
-    //            {
-    //                break;
-    //            }
-
-    //            transform.position = Vector3.MoveTowards(transform.position, curTargetPos, Time.deltaTime * enemyData.Speed);
-
-    //            yield return null;
-    //        }
-
-    //        if (playerComponent.GetComponent<Player>().moveTargetPos != targetPos)
-    //        {
-    //            PathFinding();
-
-    //            yield break;
-    //        }
-    //    }
-    //}
-
-    //void OnDrawGizmos()
-    //{
-    //    if (finalNodeList.Count != 0)
-    //    {
-    //        for (int i = 0; i < finalNodeList.Count - 1; i++)
-    //        {
-    //            Gizmos.DrawLine(new Vector2(finalNodeList[i].xPos, finalNodeList[i].yPos), new Vector2(finalNodeList[i + 1].xPos, finalNodeList[i + 1].yPos));
-    //        }
-    //    }
-    //}
-}
+//        for (int i = 1; i < _pathlist.count; i++)
+//        {
+//            if (_pathlist[i].fcost < lowestnode.fcost)
+//            {
+//                lowestnode = _pathlist[i];
+//            }
+//        }
+//        return lowestnode;
+//    }
+
+
+//    #endregion
+
+//    private void showpath(node _node)
+//    {
+//        if (_node != null)
+//        {
+//            if (_node == startnode)
+//            {
+//                _node.tile.setcolor(color.red);
+//            }
+//            else if (_node == endnode)
+//            {
+//                _node.tile.setcolor(color.blue);
+//            }
+//            else
+//            {
+//                _node.tile.setcolor(color.cyan);
+//            }
+
+//            if (_node.parentnode != null)
+//            {
+//                vector3 start = _node.tile.transform.position;
+//                vector3 end = _node.parentnode.tile.transform.position;
+//                debug.drawline(start, end, color.yellow, 5);
+//            }
+
+//            showpath(_node.parentnode);
+//        }
+//    }
+
+//    private void addopenlist(node _currentnode, node _parentnode)
+//    {
+//        int nextcost = _parentnode.gcost + heuristic(_parentnode.position, _currentnode.position);
+//        //if (nextcost < _currentnode.gcost)
+//        // {
+//        _currentnode.parentnode = _parentnode;
+//        _currentnode.gcost = _parentnode.gcost + heuristic(_parentnode.position, _currentnode.position);
+//        _currentnode.hcost = heuristic(_currentnode.position, endnode.position);
+//        opennodes.add(_currentnode);
+//        // }
+//    }
+
+//    ///// <summary>
+//    ///// 경로 탐색 함수
+//    ///// </summary>
+//    //public void pathfinding()
+//    //{
+//    //    startpos = transform.position;
+//    //    targetpos = playercomponent.movetargetpos;
+
+//    //    for (int i = -updatedetectedrange; i <= updatedetectedrange; i++) //플레이어 추격 범위만큼 노드 세팅
+//    //    {
+//    //        for (int j = -updatedetectedrange; j <= updatedetectedrange; j++)
+//    //        {
+//    //            iswall = false;
+
+//    //            foreach (collider2d collider in physics2d.overlapcircleall(new vector2(startpos.x + i, startpos.y + j), 0.2f))
+//    //            {
+//    //                if (collider.gameobject.comparetag(wall))
+//    //                {
+//    //                    iswall = true;
+//    //                }
+//    //            }
+
+//    //            nodearray[i + updatedetectedrange, j + updatedetectedrange] = new node(iswall, (int)startpos.x + i, (int)startpos.y + j);
+//    //        }
+//    //    }
+
+//    //    startnode = nodearray[updatedetectedrange, updatedetectedrange];
+
+//    //    targetnode = nodearray[(int)targetpos.x - (int)startpos.x + updatedetectedrange, (int)targetpos.y - (int)startpos.y + updatedetectedrange];
+
+//    //    openlist.clear();
+
+//    //    openlist.add(startnode);
+
+//    //    closedlist.clear();
+
+//    //    finalnodelist.clear();
+
+//    //    while (openlist.count > 0)
+//    //    {
+//    //        // 오픈리스트 중 가장 f가 작은 것, f가 같다면 h가 작은 것, h도 같다면 0번째 것을 현재노드로 하고 열린리스트에서 닫힌리스트로 옮기기
+//    //        curnode = openlist[0];
+
+//    //        openlist.remove(curnode);
+//    //        closedlist.add(curnode);
+
+//    //        for (int i = 0; i < openlist.count; i++)
+//    //        {
+//    //            if (openlist[i].fcost <= curnode.fcost && openlist[i].hcost < curnode.hcost)
+//    //            {
+//    //                curnode = openlist[i];
+//    //            }
+//    //        }
+
+//    //        // 마지막
+//    //        if (curnode == targetnode)
+//    //        {
+//    //            node targetcurnode = targetnode;
+
+//    //            while (targetcurnode != startnode)
+//    //            {
+//    //                finalnodelist.add(targetcurnode);
+//    //                targetcurnode = targetcurnode.parentnode;
+//    //            }
+
+//    //            finalnodelist.add(startnode);
+//    //            finalnodelist.reverse();
+
+//    //            startcoroutine(move());
+
+//    //            return;
+//    //        }
+
+//    //        openlistadd(curnode.xpos, curnode.ypos + 1);
+//    //        openlistadd(curnode.xpos + 1, curnode.ypos);
+//    //        openlistadd(curnode.xpos, curnode.ypos - 1);
+//    //        openlistadd(curnode.xpos - 1, curnode.ypos);
+//    //    }
+//    //}
+
+//    ///// <summary>
+//    ///// 진행 가능한 경로의 노드들 오픈리스트 추가 함수
+//    ///// </summary>
+//    ///// <param name="checkx"></param>
+//    ///// <param name="checky"></param>
+//    //private void openlistadd(int checkx, int checky)
+//    //{
+//    //    //감지 범위를 벗어나지 않고, 벽이 아니면서, 닫힌리스트에 없다면
+//    //    if (checkx >= startpos.x - updatedetectedrange && checkx <= startpos.x + updatedetectedrange
+//    //        && checky >= startpos.y - updatedetectedrange && checky <= startpos.y + updatedetectedrange
+//    //        && nodearray[(int)(checkx - startpos.x) + updatedetectedrange, (int)(checky - startpos.y) + updatedetectedrange].iswall == false
+//    //        && closedlist.contains(nodearray[(int)(checkx - startpos.x) + updatedetectedrange, (int)(checky - startpos.y) + updatedetectedrange]) == false)
+//    //    {
+//    //        // 이웃노드에 넣기
+//    //        node neighbornode = nodearray[(int)(checkx - startpos.x) + updatedetectedrange, (int)(checky - startpos.y) + updatedetectedrange];
+//    //        int movecost = 10;
+
+//    //        // 이동비용이 이웃노드 g보다 작거나 또는 열린리스트에 이웃노드가 없다면 g, h, parentnode를 설정 후 열린리스트에 추가
+//    //        if (movecost < neighbornode.gcost || openlist.contains(neighbornode) == false)
+//    //        {
+//    //            neighbornode.gcost = movecost;
+//    //            neighbornode.hcost = (mathf.abs(neighbornode.xpos - targetnode.xpos) + mathf.abs(neighbornode.ypos - targetnode.ypos)) * 10;
+//    //            neighbornode.parentnode = curnode;
+
+//    //            openlist.add(neighbornode);
+//    //        }
+//    //    }
+//    //}
+
+//    ///// <summary>
+//    ///// 움직임 함수
+//    ///// </summary>
+//    //public ienumerator move()
+//    //{
+//    //    vector2 curtargetpos;
+
+//    //    for (int nowindex = 0; nowindex < finalnodelist.count; nowindex++)
+//    //    {
+//    //        curtargetpos.x = finalnodelist[nowindex].xpos;
+//    //        curtargetpos.y = finalnodelist[nowindex].ypos;
+
+//    //        while (true)
+//    //        {
+//    //            if (transform.position.x == curtargetpos.x && transform.position.y == curtargetpos.y)
+//    //            {
+//    //                break;
+//    //            }
+
+//    //            transform.position = vector3.movetowards(transform.position, curtargetpos, time.deltatime * enemydata.speed);
+
+//    //            yield return null;
+//    //        }
+
+//    //        if (playercomponent.getcomponent<player>().movetargetpos != targetpos)
+//    //        {
+//    //            pathfinding();
+
+//    //            yield break;
+//    //        }
+//    //    }
+//    //}
+
+//    //void ondrawgizmos()
+//    //{
+//    //    if (finalnodelist.count != 0)
+//    //    {
+//    //        for (int i = 0; i < finalnodelist.count - 1; i++)
+//    //        {
+//    //            gizmos.drawline(new vector2(finalnodelist[i].xpos, finalnodelist[i].ypos), new vector2(finalnodelist[i + 1].xpos, finalnodelist[i + 1].ypos));
+//    //        }
+//    //    }
+//    //}
+//}

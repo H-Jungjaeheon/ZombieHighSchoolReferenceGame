@@ -1,18 +1,26 @@
+using GameServer;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class ClientSend : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    private static void SendTcpData(Packet _Packet)
     {
-        
+        _Packet.WriteLength();
+        Client.Instance.MyTcp.SendData(_Packet);
     }
 
-    // Update is called once per frame
-    void Update()
+    #region Packets
+    public static void WelcomeReceived()
     {
-        
+        using(Packet _Packet = new Packet((int)ClientPackets.welcomeReceived))
+        {
+            _Packet.Write(Client.Instance.MyId);
+            _Packet.Write(UIManager.Instance.UserName.text);
+
+            SendTcpData(_Packet);
+        }
     }
+    #endregion
 }

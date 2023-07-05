@@ -13,6 +13,6 @@ public class ClientHandle : MonoBehaviour
         Debug.Log($"Message From Server: {_Msg}");
         Client.Instance.MyId = _MyId;
 
-        //TODO: 수신 했다는 패킷 전송
+        ClientSend.WelcomeReceived();
     }
 }
