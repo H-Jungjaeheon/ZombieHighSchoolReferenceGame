@@ -4,13 +4,13 @@ using System.Text;
 
 namespace GameServer
 {
-    /// <summary>Sent from server to client.</summary>
+    /// <summary>서버에서 클라이언트로 전송한다.</summary>
     public enum ServerPackets
     {
         welcome = 1
     }
 
-    /// <summary>Sent from client to server.</summary>
+    /// <summary>클라이언트에서 서버로 전송한다.</summary>
     public enum ClientPackets
     {
         welcomeReceived = 1
@@ -22,158 +22,158 @@ namespace GameServer
         private byte[] readableBuffer;
         private int readPos;
 
-        /// <summary>Creates a new empty packet (without an ID).</summary>
+        /// <summary>새 빈 패킷을 만든다(ID 없음).</summary>
         public Packet()
         {
-            buffer = new List<byte>(); // Intitialize buffer
-            readPos = 0; // Set readPos to 0
+            buffer = new List<byte>(); // 버퍼 초기화
+            readPos = 0; // 읽는 위치 0으로 설정
         }
 
-        /// <summary>Creates a new packet with a given ID. Used for sending.</summary>
-        /// <param name="_id">The packet ID.</param>
+        /// <summary>지정된 ID로 새 패킷을 생성, 송신에 사용된다.</summary>
+        /// <param name="_id">패킷 ID</param>
         public Packet(int _id)
         {
-            buffer = new List<byte>(); // Intitialize buffer
-            readPos = 0; // Set readPos to 0
+            buffer = new List<byte>(); // 버퍼 초기화
+            readPos = 0; // 읽는 위치 0으로 설정
 
-            Write(_id); // Write packet id to the buffer
+            Write(_id); // 버퍼에 패킷 Id 작성
         }
 
-        /// <summary>Creates a packet from which data can be read. Used for receiving.</summary>
-        /// <param name="_data">The bytes to add to the packet.</param>
+        /// <summary>데이터를 읽을 수 있는 패킷을 생성, 송신에 사용된다.</summary>
+        /// <param name="_data">패킷에 추가할 Byte</param>
         public Packet(byte[] _data)
         {
-            buffer = new List<byte>(); // Intitialize buffer
-            readPos = 0; // Set readPos to 0
+            buffer = new List<byte>(); // 버퍼 초기화
+            readPos = 0; // 읽는 위치 0으로 설정
 
             SetBytes(_data);
         }
 
         #region Functions
-        /// <summary>Sets the packet's content and prepares it to be read.</summary>
-        /// <param name="_data">The bytes to add to the packet.</param>
+        /// <summary>패킷의 내용 설정, 읽을 수 있도록 준비한다.</summary>
+        /// <param name="_data">패킷에 추가할 Byte</param>
         public void SetBytes(byte[] _data)
         {
             Write(_data);
             readableBuffer = buffer.ToArray();
         }
 
-        /// <summary>Inserts the length of the packet's content at the start of the buffer.</summary>
+        /// <summary>버퍼 시작 부분에 패킷 내용의 길이를 삽입한다.</summary>
         public void WriteLength()
         {
-            buffer.InsertRange(0, BitConverter.GetBytes(buffer.Count)); // Insert the byte length of the packet at the very beginning
+            buffer.InsertRange(0, BitConverter.GetBytes(buffer.Count)); // 버퍼 처음에 패킷의 바이트 길이를 삽입.
         }
 
-        /// <summary>Inserts the given int at the start of the buffer.</summary>
-        /// <param name="_value">The int to insert.</param>
+        /// <summary>버퍼의 시작 부분에 주어진 int를 삽입한다.</summary>
+        /// <param name="_value">삽입할 Int</param>
         public void InsertInt(int _value)
         {
-            buffer.InsertRange(0, BitConverter.GetBytes(_value)); // Insert the int at the start of the buffer
+            buffer.InsertRange(0, BitConverter.GetBytes(_value)); // 버퍼 처음에 바이트로 변환된 int 삽입
         }
 
-        /// <summary>Gets the packet's content in array form.</summary>
+        /// <summary>패킷의 내용을 배열 형식으로 가져온다.</summary>
         public byte[] ToArray()
         {
             readableBuffer = buffer.ToArray();
             return readableBuffer;
         }
 
-        /// <summary>Gets the length of the packet's content.</summary>
+        /// <summary>패킷의 길이를 가져온다.</summary>
         public int Length()
         {
-            return buffer.Count; // Return the length of buffer
+            return buffer.Count; // 버퍼의 길이를 리턴
         }
 
-        /// <summary>Gets the length of the unread data contained in the packet.</summary>
+        /// <summary>패킷에 포함된 읽지 않은 데이터의 길이를 가져온다.</summary>
         public int UnreadLength()
         {
-            return Length() - readPos; // Return the remaining length (unread)
+            return Length() - readPos; // 남은 길이 반환(읽지 않음)
         }
 
-        /// <summary>Resets the packet instance to allow it to be reused.</summary>
-        /// <param name="_shouldReset">Whether or not to reset the packet.</param>
+        /// <summary>재사용할 수 있도록 패킷 인스턴스를 재설정한다.</summary>
+        /// <param name="_shouldReset">패킷을 재설정할지 여부</param>
         public void Reset(bool _shouldReset = true)
         {
             if (_shouldReset)
             {
-                buffer.Clear(); // Clear buffer
+                buffer.Clear(); // 버퍼 지움
                 readableBuffer = null;
-                readPos = 0; // Reset readPos
+                readPos = 0; // 읽을 위치 초기화
             }
             else
             {
-                readPos -= 4; // "Unread" the last read int
+                readPos -= 4; // 마지막으로 읽은 int를 "읽지 않음"
             }
         }
         #endregion
 
         #region Write Data
-        /// <summary>Adds a byte to the packet.</summary>
-        /// <param name="_value">The byte to add.</param>
+        /// <summary>패킷에 Byte형 데이터를 추가한다.</summary>
+        /// <param name="_value">추가 할 Byte</param>
         public void Write(byte _value)
         {
             buffer.Add(_value);
         }
-        /// <summary>Adds an array of bytes to the packet.</summary>
-        /// <param name="_value">The byte array to add.</param>
+        /// <summary>패킷에 Byte Array형 데이터를 추가한다.</summary>
+        /// <param name="_value">추가 할 Byte Array</param>
         public void Write(byte[] _value)
         {
             buffer.AddRange(_value);
         }
-        /// <summary>Adds a short to the packet.</summary>
-        /// <param name="_value">The short to add.</param>
+        /// <summary>패킷에 Short형 데이터를 추가한다.</summary>
+        /// <param name="_value">추가 할 Short.</param>
         public void Write(short _value)
         {
             buffer.AddRange(BitConverter.GetBytes(_value));
         }
-        /// <summary>Adds an int to the packet.</summary>
-        /// <param name="_value">The int to add.</param>
+        /// <summary>패킷에 Int형 데이터를 추가한다.</summary>
+        /// <param name="_value">추가 할 Int.</param>
         public void Write(int _value)
         {
             buffer.AddRange(BitConverter.GetBytes(_value));
         }
-        /// <summary>Adds a long to the packet.</summary>
-        /// <param name="_value">The long to add.</param>
+        /// <summary>패킷에 Long형 데이터를 추가한다.</summary>
+        /// <param name="_value">추가 할 Long.</param>
         public void Write(long _value)
         {
             buffer.AddRange(BitConverter.GetBytes(_value));
         }
-        /// <summary>Adds a float to the packet.</summary>
-        /// <param name="_value">The float to add.</param>
+        /// <summary>패킷에 Float 데이터를 추가한다.</summary>
+        /// <param name="_value">추가 할 Float.</param>
         public void Write(float _value)
         {
             buffer.AddRange(BitConverter.GetBytes(_value));
         }
-        /// <summary>Adds a bool to the packet.</summary>
-        /// <param name="_value">The bool to add.</param>
+        /// <summary>패킷에 Bool 데이터를 추가한다.</summary>
+        /// <param name="_value">추가 할 Bool.</param>
         public void Write(bool _value)
         {
             buffer.AddRange(BitConverter.GetBytes(_value));
         }
-        /// <summary>Adds a string to the packet.</summary>
-        /// <param name="_value">The string to add.</param>
+        /// <summary>패킷에 String 데이터를 추가한다.</summary>
+        /// <param name="_value">추가 할 String.</param>
         public void Write(string _value)
         {
-            Write(_value.Length); // Add the length of the string to the packet
-            buffer.AddRange(Encoding.ASCII.GetBytes(_value)); // Add the string itself
+            Write(_value.Length); // 패킷에 문자열 길이 추가
+            buffer.AddRange(Encoding.ASCII.GetBytes(_value)); // 문자열 자체 추가
         }
         #endregion
 
         #region Read Data
-        /// <summary>Reads a byte from the packet.</summary>
-        /// <param name="_moveReadPos">Whether or not to move the buffer's read position.</param>
+        /// <summary>패킷에서 Byte를 읽는다.</summary>
+        /// <param name="_moveReadPos">버퍼의 읽기 위치를 이동할지 여부</param>
         public byte ReadByte(bool _moveReadPos = true)
         {
             if (buffer.Count > readPos)
             {
-                // If there are unread bytes
-                byte _value = readableBuffer[readPos]; // Get the byte at readPos' position
+                // 읽지 않은 바이트가 있는 경우
+                byte _value = readableBuffer[readPos]; // readPos의 위치에서 바이트 가져오기
                 if (_moveReadPos)
                 {
-                    // If _moveReadPos is true
-                    readPos += 1; // Increase readPos by 1
+                    // _moveReadPos가 true인 경우
+                    readPos += 1; // readPos를 1 증가
                 }
-                return _value; // Return the byte
+                return _value; // Byte를 반환
             }
             else
             {
@@ -181,21 +181,21 @@ namespace GameServer
             }
         }
 
-        /// <summary>Reads an array of bytes from the packet.</summary>
-        /// <param name="_length">The length of the byte array.</param>
-        /// <param name="_moveReadPos">Whether or not to move the buffer's read position.</param>
+        /// <summary>패킷에서 ByteArray를 읽는다.</summary>
+        /// <param name="_length">바이트 배열의 길이</param>
+        /// <param name="_moveReadPos">버퍼의 읽기 위치를 이동할지 여부</param>
         public byte[] ReadBytes(int _length, bool _moveReadPos = true)
         {
             if (buffer.Count > readPos)
             {
-                // If there are unread bytes
-                byte[] _value = buffer.GetRange(readPos, _length).ToArray(); // Get the bytes at readPos' position with a range of _length
+                // 읽지 않은 바이트가 있는 경우
+                byte[] _value = buffer.GetRange(readPos, _length).ToArray(); // _length 범위의 readPos 위치에서 바이트 가져오기
                 if (_moveReadPos)
                 {
-                    // If _moveReadPos is true
-                    readPos += _length; // Increase readPos by _length
+                    // _moveReadPos가 true인 경우
+                    readPos += _length; // readPos를 _length만큼 증가
                 }
-                return _value; // Return the bytes
+                return _value; // ByteArray를 반환
             }
             else
             {
@@ -203,20 +203,20 @@ namespace GameServer
             }
         }
 
-        /// <summary>Reads a short from the packet.</summary>
-        /// <param name="_moveReadPos">Whether or not to move the buffer's read position.</param>
+        /// <summary>패킷에서 short를 읽는다.</summary>
+        /// <param name="_moveReadPos">버퍼의 읽기 위치를 이동할지 여부</param>
         public short ReadShort(bool _moveReadPos = true)
         {
             if (buffer.Count > readPos)
             {
-                // If there are unread bytes
-                short _value = BitConverter.ToInt16(readableBuffer, readPos); // Convert the bytes to a short
+                // 읽지 않은 바이트가 있는 경우
+                short _value = BitConverter.ToInt16(readableBuffer, readPos); // 바이트를 short로 변환
                 if (_moveReadPos)
                 {
-                    // If _moveReadPos is true and there are unread bytes
-                    readPos += 2; // Increase readPos by 2
+                    // _moveReadPos가 true이고 읽지 않은 바이트가 있는 경우
+                    readPos += 2; // readPos를 2 증가
                 }
-                return _value; // Return the short
+                return _value; // Short를 반환
             }
             else
             {
@@ -224,20 +224,20 @@ namespace GameServer
             }
         }
 
-        /// <summary>Reads an int from the packet.</summary>
-        /// <param name="_moveReadPos">Whether or not to move the buffer's read position.</param>
+        /// <summary>패킷에서 int를 읽는다.</summary>
+        /// <param name="_moveReadPos">버퍼의 읽기 위치를 이동할지 여부</param>
         public int ReadInt(bool _moveReadPos = true)
         {
             if (buffer.Count > readPos)
             {
-                // If there are unread bytes
-                int _value = BitConverter.ToInt32(readableBuffer, readPos); // Convert the bytes to an int
+                // 읽지 않은 바이트가 있는 경우
+                int _value = BitConverter.ToInt32(readableBuffer, readPos); // Byte를 Int로 변환
                 if (_moveReadPos)
                 {
-                    // If _moveReadPos is true
-                    readPos += 4; // Increase readPos by 4
+                    // _moveReadPos가 true인 경우
+                    readPos += 4; // readPos를 4 증가
                 }
-                return _value; // Return the int
+                return _value; // Int를 반환
             }
             else
             {
@@ -245,20 +245,20 @@ namespace GameServer
             }
         }
 
-        /// <summary>Reads a long from the packet.</summary>
-        /// <param name="_moveReadPos">Whether or not to move the buffer's read position.</param>
+        /// <summary>패킷에서 long을 읽는다.</summary>
+        /// <param name="_moveReadPos">버퍼의 읽기 위치를 이동할지 여부</param>
         public long ReadLong(bool _moveReadPos = true)
         {
             if (buffer.Count > readPos)
             {
-                // If there are unread bytes
-                long _value = BitConverter.ToInt64(readableBuffer, readPos); // Convert the bytes to a long
+                // 읽지 않은 바이트가 있는 경우
+                long _value = BitConverter.ToInt64(readableBuffer, readPos); // 바이트를 long으로 변환
                 if (_moveReadPos)
                 {
-                    // If _moveReadPos is true
-                    readPos += 8; // Increase readPos by 8
+                    // _moveReadPos가 true인 경우
+                    readPos += 8; // readPos를 8 증가
                 }
-                return _value; // Return the long
+                return _value; // Long 반환
             }
             else
             {
@@ -266,20 +266,20 @@ namespace GameServer
             }
         }
 
-        /// <summary>Reads a float from the packet.</summary>
-        /// <param name="_moveReadPos">Whether or not to move the buffer's read position.</param>
+        /// <summary>패킷에서 Float을 읽습니다.</summary>
+        /// <param name="_moveReadPos">버퍼의 읽기 위치를 이동할지 여부</param>
         public float ReadFloat(bool _moveReadPos = true)
         {
             if (buffer.Count > readPos)
             {
-                // If there are unread bytes
-                float _value = BitConverter.ToSingle(readableBuffer, readPos); // Convert the bytes to a float
+                // 읽지 않은 바이트가 있는 경우
+                float _value = BitConverter.ToSingle(readableBuffer, readPos); // 바이트를 Float로 변환
                 if (_moveReadPos)
                 {
-                    // If _moveReadPos is true
-                    readPos += 4; // Increase readPos by 4
+                    // _moveReadPos가 true인 경우
+                    readPos += 4; // readPos를 4 증가
                 }
-                return _value; // Return the float
+                return _value; // Float 반환
             }
             else
             {
@@ -287,20 +287,20 @@ namespace GameServer
             }
         }
 
-        /// <summary>Reads a bool from the packet.</summary>
-        /// <param name="_moveReadPos">Whether or not to move the buffer's read position.</param>
+        /// <summary>패킷에서 Bool을 읽는다.</summary>
+        /// <param name="_moveReadPos">버퍼의 읽기 위치를 이동할지 여부</param>
         public bool ReadBool(bool _moveReadPos = true)
         {
             if (buffer.Count > readPos)
             {
-                // If there are unread bytes
-                bool _value = BitConverter.ToBoolean(readableBuffer, readPos); // Convert the bytes to a bool
+                // 읽지 않은 바이트가 있는 경우
+                bool _value = BitConverter.ToBoolean(readableBuffer, readPos); // 바이트를 Bool로 변환
                 if (_moveReadPos)
                 {
-                    // If _moveReadPos is true
-                    readPos += 1; // Increase readPos by 1
+                    // _moveReadPos가 true인 경우
+                    readPos += 1; // readPos를 1 증가
                 }
-                return _value; // Return the bool
+                return _value; // Bool 반환
             }
             else
             {
@@ -308,20 +308,20 @@ namespace GameServer
             }
         }
 
-        /// <summary>Reads a string from the packet.</summary>
-        /// <param name="_moveReadPos">Whether or not to move the buffer's read position.</param>
+        /// <summary>패킷에서 String을 읽는다.</summary>
+        /// <param name="_moveReadPos">버퍼의 읽기 위치를 이동할지 여부</param>
         public string ReadString(bool _moveReadPos = true)
         {
             try
             {
-                int _length = ReadInt(); // Get the length of the string
-                string _value = Encoding.ASCII.GetString(readableBuffer, readPos, _length); // Convert the bytes to a string
+                int _length = ReadInt(); // 문자열의 길이 구하기
+                string _value = Encoding.ASCII.GetString(readableBuffer, readPos, _length); // Byte를 String로 변환
                 if (_moveReadPos && _value.Length > 0)
                 {
-                    // If _moveReadPos is true string is not empty
-                    readPos += _length; // Increase readPos by the length of the string
+                    // _moveReadPos가 참이면 문자열이 비어 있지 않습니다.
+                    readPos += _length; // 문자열 길이만큼 readPos 증가
                 }
-                return _value; // Return the string
+                return _value; // 문자열을 반환
             }
             catch
             {

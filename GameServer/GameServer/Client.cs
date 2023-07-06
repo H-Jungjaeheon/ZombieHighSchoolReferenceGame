@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,11 +14,13 @@ namespace GameServer
 
         public int MyId;
         public Tcp MyTcp;
+        public Udp MyUdp;
 
         public Client(int _ClientId)
         {
             MyId = _ClientId;
             MyTcp = new Tcp(MyId);
+            MyUdp = new Udp(MyId);
         }
         
         public class Tcp
@@ -135,5 +138,42 @@ namespace GameServer
                 return false;
             }
         }
+
+        public class Udp
+        {
+            public IPEndPoint EndPoint;
+
+            private int Id;
+
+            public Udp(int _Id)
+            {
+                Id = _Id;
+            }
+
+            public void Connect(IPEndPoint _EndPoint)
+            {
+                EndPoint = _EndPoint;
+            }
+
+            public void SendData(Packet _Packet)
+            {
+                Server.SendUdpData(EndPoint, _Packet);
+            }
+
+            public void HandleData(Packet _PacketData)
+            {
+                int _PacketLength = _PacketData.ReadInt();
+                byte[] _PacketBytes = _PacketData.ReadBytes(_PacketLength);
+
+                ThreadManager.ExecuteOnMainThread(() =>
+                {
+                    using (Packet _Packet = new Packet(_PacketBytes))
+                    {
+                        int _PacketId = _Packet.ReadInt();
+                        Server.PacketHandlers[_PacketId](Id, _Packet);
+                    }
+                })
+            }
+        }   
     }
 }

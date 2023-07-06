@@ -11,6 +11,12 @@ public class ClientSend : MonoBehaviour
         Client.Instance.MyTcp.SendData(_Packet);
     }
 
+    private static void SendUdpData(Packet _Packet)
+    {
+        _Packet.WriteLength();
+        Client.Instance.MyUdp.SendData(_Packet);
+    }
+
     #region Packets
     public static void WelcomeReceived()
     {

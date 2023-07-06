@@ -2,6 +2,7 @@ using GameServer;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ public class Client : MonoBehaviour
     public int Port = 26950;
     public int MyId = 0;
     public Tcp MyTcp;
+    public Udp MyUdp;
 
     private delegate void PacketHandler(Packet _Packet);
     private static Dictionary<int, PacketHandler> PacketHandlers;
@@ -36,6 +38,7 @@ public class Client : MonoBehaviour
     private void Start()
     {
         MyTcp = new Tcp();
+        MyUdp = new Udp();
     }
 
     public void ConnectToServer()
@@ -163,6 +166,86 @@ public class Client : MonoBehaviour
             }
 
             return false;
+        }
+    }
+
+    public class Udp
+    {
+        public UdpClient Socket;
+        public IPEndPoint EndPoint;
+
+        public Udp()
+        {
+            EndPoint = new IPEndPoint(IPAddress.Parse(Instance.Ip), Instance.Port);
+        }
+
+        public void Connect(int _LocalPort)
+        {
+            Socket = new UdpClient(_LocalPort);
+
+            Socket.Connect(EndPoint);
+            Socket.BeginReceive(ReceiveCallback, null);
+
+            using (Packet _Packet = new Packet())
+            {
+                SendData(_Packet);
+            }
+        }
+
+        public void SendData(Packet _Packet)
+        {
+            try
+            {
+                _Packet.InsertInt(Instance.MyId);
+                if(Socket != null)
+                {
+                    Socket.BeginSend(_Packet.ToArray(), _Packet.Length(), null, null);
+                }
+            }
+            catch (Exception _Ex)
+            {
+
+                Debug.Log($"Error Sending Data To Server Via Udp: {_Ex}");
+            }
+        }
+
+        public void ReceiveCallback(IAsyncResult _Result)
+        {
+            try
+            {
+                byte[] _Data = Socket.EndReceive(_Result, ref EndPoint);
+                Socket.BeginReceive(ReceiveCallback, null);
+
+                if(_Data.Length < 4)
+                {
+                    //TODO: 立加 辆丰
+                    return;
+                }
+
+                HandleData(_Data);
+            }
+            catch (Exception ex)
+            {
+                //TODO: 立加 辆丰
+            }
+        }
+
+        private void HandleData(byte[] _Data)
+        {
+            using (Packet _Packet = new Packet(_Data))
+            {
+                int _PacketLength = _Packet.ReadInt();
+                _Data = _Packet.ReadBytes(_PacketLength);
+            }
+
+            ThreadManager.ExecuteOnMainThread(() =>
+            {
+                using (Packet _Packet = new Packet(_Data))
+                {
+                    int _PacketId = _Packet.ReadInt();
+                    PacketHandlers[_PacketId](_Packet);
+                }
+            });
         }
     }
 

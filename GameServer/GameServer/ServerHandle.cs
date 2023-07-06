@@ -14,7 +14,7 @@ namespace GameServer
             string _UserName = _Packet.ReadString();
 
             Console.WriteLine($"{Server.Clients[_FromClient].MyTcp.Socket.Client.RemoteEndPoint} " +
-                $"Connected Successfully And Is Now Player {_FromClient}.");
+                $"Connected Successfully And Is Now Player {_FromClient} : {_UserName}.");
 
             if(_FromClient != _ClientIdCheck)
             {

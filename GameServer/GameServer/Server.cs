@@ -18,6 +18,7 @@ namespace GameServer
         public static Dictionary<int, PacketHandler> PacketHandlers;
 
         private static TcpListener TcpListener;
+        private static UdpClient UdpListener;
 
         public static void Start(int _MaxPlayers, int _Port)
         {
@@ -30,6 +31,9 @@ namespace GameServer
             TcpListener = new TcpListener(IPAddress.Any, Port);
             TcpListener.Start();
             TcpListener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
+
+            UdpListener = new UdpClient(Port);
+            UdpListener.BeginReceive(UdpReceiveCallback, null);
 
             Console.WriteLine($"Server Started on {Port}");
         }
@@ -50,6 +54,42 @@ namespace GameServer
             }
 
             Console.WriteLine($"{_Client.Client.RemoteEndPoint} Failed To Connect: Server Full");
+        }
+
+        private static void UDPReceiveCallback(IAsyncResult _Result)
+        {
+            try
+            {
+                IPEndPoint _ClientEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                byte[] _Data = UdpListener.EndReceive(_Result, ref _ClientEndPoint);
+                UdpListener.BeginReceive(UDPReceiveCallback, null);
+
+                if(_Data.Length < 4) 
+                {
+                    return;
+                }
+
+                using (Packet _Packet = new Packet(_Data))
+                {
+                    int _ClientId = _Packet.ReadInt();
+
+                    if(_ClientId == 0) 
+                    {
+                        return;
+                    }
+
+                    if (Clients[_ClientId].MyUdp.EndPoint == null)
+                    {
+                        Clients[_ClientId].MyUdp.Connect(_ClientEndPoint);
+                        return;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
 
         private static void InitializeServerData()
