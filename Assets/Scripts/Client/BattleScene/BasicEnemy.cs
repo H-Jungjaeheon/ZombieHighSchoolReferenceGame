@@ -73,18 +73,16 @@ public class BasicEnemy : MonoBehaviour
     #region 이동 관련 요소들 모음
     [Header("이동 관련 요소들 모음")]
 
-    const int MOVE_STRAIGHT_COST = 1;
-    const int MOVE_DIAGONAL_COST = 2;
+    const int MOVE_STRAIGHT_COST = 10;
+    const int MOVE_DIAGONAL_COST = 14;
 
     [Tooltip("현재 맵 크기 저장용 Vector")]
     private Vector2Int mapSize;
 
-    [Tooltip("현재 맵 기준 타일 위치 Vector (맨 왼쪽 아래 타일)")]
-    private Vector2Int criteriaTilePos;
-
     [Tooltip("현재 노드가 벽인지 판별")]
     private bool isWall;
 
+    [SerializeField]
     [Tooltip("최종 경로 노드 리스트")]
     public List<Node> finalNodeList;
 
@@ -117,7 +115,8 @@ public class BasicEnemy : MonoBehaviour
         hp = enemyData.maxHp;
 
         mapSize = new Vector2Int(87, 66); //게임 매니저에서 현재 스테이지에 맞는 맵 크기 받아오는 것으로 수정
-        criteriaTilePos = Vector2Int.zero;
+
+        MapSetting();
     }
 
     /// <summary>
@@ -174,20 +173,20 @@ public class BasicEnemy : MonoBehaviour
     /// </summary>
     public virtual void DetectedPlayer(GameObject detectedPlayerObj)
     {
-        if (playerComponent != null)
-        {
-            return;
-        }
-
         playerComponent = detectedPlayerObj.GetComponent<Player>();
 
-        openList.Clear();
-        curMapNodes.Clear();
-        MapSetting();
+        StartCoroutine(PathFind());
     }
 
+    /// <summary>
+    /// 길 찾기 함수
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator PathFind()
     {
+        openList.Clear();
+        finalNodeList.Clear();
+
         startNode = curMapNodes[(int)transform.position.y * mapSize.x + (int)transform.position.x];
         targetNode = curMapNodes[(int)playerComponent.moveTargetPos.y * mapSize.x + (int)playerComponent.moveTargetPos.x];
 
@@ -214,6 +213,14 @@ public class BasicEnemy : MonoBehaviour
 
             if (currentNode == targetNode) // 현재 노드가 끝 노드라면
             {
+                while (currentNode.parentNode != null)
+                {
+                    finalNodeList.Add(currentNode);
+                    currentNode = currentNode.parentNode;
+                }
+
+                finalNodeList.Reverse();
+
                 StartCoroutine(Move());
 
                 yield break;
@@ -943,11 +950,13 @@ public class BasicEnemy : MonoBehaviour
     }
 
     /// <summary>
-    /// 맵 세팅 함수
+    /// 현재 맵 노드 세팅 함수
     /// </summary>
     private void MapSetting()
     {
         Node curMapNode;
+
+        curMapNodes.Clear();
 
         for (int i = 0; i < mapSize.y; i++)
         {
@@ -955,7 +964,7 @@ public class BasicEnemy : MonoBehaviour
             {
                 isWall = false;
 
-                foreach (Collider2D collider in Physics2D.OverlapCircleAll(new Vector2(criteriaTilePos.x + j, criteriaTilePos.y + i), 0.2f))
+                foreach (Collider2D collider in Physics2D.OverlapCircleAll(new Vector2(j, i), 0.2f))
                 {
                     if (collider.gameObject.CompareTag(WALL))
                     {
@@ -964,21 +973,10 @@ public class BasicEnemy : MonoBehaviour
                 }
 
                 curMapNode = new Node(isWall, j, i);
-                curMapNodes.Add(curMapNode);
 
-                // 시작, 목표 노트 판별 후 대입
-                if (j == transform.position.x && i == transform.position.y)
-                {
-                    startNode = curMapNode;
-                }
-                else if (j == playerComponent.moveTargetPos.x && i == playerComponent.moveTargetPos.y)
-                {
-                    targetNode = curMapNode;
-                }
+                curMapNodes.Add(curMapNode);
             }
         }
-
-        StartCoroutine(PathFind());
     }
 
     /// <summary>
@@ -1003,14 +1001,11 @@ public class BasicEnemy : MonoBehaviour
     /// <param name="_parentNode"> 오픈리스트 노드의 부모 노드 </param>
     private void AddOpenList(Node _currentNode, Node _parentNode)
     {
-        //int nextCost = _parentNode.gCost + Heuristic(_parentNode.nodePos, _currentNode.nodePos);
-        //if (nextCost < _currentNode.gCost)
-        // {
         _currentNode.parentNode = _parentNode;
         _currentNode.gCost = _parentNode.gCost + Heuristic(_parentNode.nodePos, _currentNode.nodePos);
         _currentNode.hCost = Heuristic(_currentNode.nodePos, targetNode.nodePos);
+
         openList.Add(_currentNode);
-        // }
     }
 
     /// <summary>
@@ -1019,33 +1014,49 @@ public class BasicEnemy : MonoBehaviour
     public IEnumerator Move()
     {
         Vector2 curTargetPos;
+        Vector3 targetPos = Vector3.zero;
 
-        print("실행");
+        targetPos.x = targetNode.nodePos.x;
+        targetPos.y = targetNode.nodePos.y;
 
-        yield return null;
-        //for (int nowIndex = 0; nowIndex < finalNodeList.Count; nowIndex++)
-        //{
-        //    //curTargetPos.x = finalNodeList[nowIndex].xPos;
-        //    //curTargetPos.y = finalNodeList[nowIndex].yPos;
+        for (int nowIndex = 0; nowIndex < finalNodeList.Count; nowIndex++)
+        {
+            curTargetPos.x = finalNodeList[nowIndex].nodePos.x;
+            curTargetPos.y = finalNodeList[nowIndex].nodePos.y;
 
-        //    while (true)
-        //    {
-        //        if (transform.position.x == curTargetPos.x && transform.position.y == curTargetPos.y)
-        //        {
-        //            break;
-        //        }
+            while (true)
+            {
+                if (transform.position.x == curTargetPos.x && transform.position.y == curTargetPos.y)
+                {
+                    break;
+                }
 
-        //        transform.position = Vector3.MoveTowards(transform.position, curTargetPos, Time.deltaTime * enemyData.Speed);
+                transform.position = Vector3.MoveTowards(transform.position, curTargetPos, Time.deltaTime * enemyData.Speed);
 
-        //        yield return null;
-        //    }
+                yield return null;
+            }
 
-        //    if (playerComponent.moveTargetPos != targetPos)
-        //    {
-        //        PathFinding();
+            if (playerComponent.moveTargetPos != targetPos)
+            {
+                MapSetting();
 
-        //        yield break;
-        //    }
-        //}
+                yield return new WaitForSeconds(0.1f);
+                
+                StartCoroutine(PathFind());
+
+                break;
+            }
+        }
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (finalNodeList.Count > 0)
+        {
+            for (int i = 0; i < finalNodeList.Count - 1; i++)
+            {
+                Gizmos.DrawLine((Vector2)finalNodeList[i].nodePos, (Vector2)finalNodeList[i + 1].nodePos);
+            }
+        }
     }
 }
