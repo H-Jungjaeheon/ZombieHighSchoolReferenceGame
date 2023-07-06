@@ -77,7 +77,7 @@ namespace GameServer
                     int _ByteLength = Stream.EndRead(_Result);
                     if (_ByteLength <= 0)
                     {
-                        // TODO: 클라이언트 접속 종료
+                        Server.Clients[Id].Disconnect();
                         return;
                     }
 
@@ -90,7 +90,7 @@ namespace GameServer
                 catch (Exception _Ex)
                 {
                     Console.WriteLine($"Error Receiving TCP Data: {_Ex}");
-                    //TODO: 클라이언트 접속 종료
+                    Server.Clients[Id].Disconnect();
                 }
             }
 
@@ -139,6 +139,15 @@ namespace GameServer
 
                 return false;
             }
+
+            public void Disconnect()
+            {
+                Socket.Close();
+                Stream = null;
+                ReceiveData = null;
+                ReceiveBuffer = null;
+                Socket = null;
+            }
         }
 
         public class Udp
@@ -176,6 +185,11 @@ namespace GameServer
                     }
                 });
             }
+
+            public void Disconnect()
+            {
+                EndPoint = null;
+            }
         }
 
         public void SendIntoGame(string _PlayerName)
@@ -200,6 +214,16 @@ namespace GameServer
                     ServerSend.SpawnPlayer(_Client.MyId, MyPlayer);
                 }
             }
+        }
+
+        private void Disconnect()
+        {
+            Console.WriteLine($"{MyTcp.Socket.Client.RemoteEndPoint} Has Disconnected.");
+
+            MyPlayer = null;
+
+            MyTcp.Disconnect();
+            MyUdp.Disconnect();
         }
     }
 }
