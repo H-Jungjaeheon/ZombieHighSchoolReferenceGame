@@ -46,7 +46,7 @@ namespace GameServer
             _Packet.WriteLength();
             for (int i = 1; i <= Server.MaxPlayers; i++)
             {
-                Server.Clients[i].MyTcp.SendData(_Packet);
+                Server.Clients[i].MyUdp.SendData(_Packet);
             }
         }
 
@@ -57,7 +57,7 @@ namespace GameServer
             {
                 if (i != _ExceptClient)
                 {
-                    Server.Clients[i].MyTcp.SendData(_Packet);
+                    Server.Clients[i].MyUdp.SendData(_Packet);
                 }
             }
         }
@@ -84,6 +84,28 @@ namespace GameServer
                 _Packet.Write(_Player.Rotation);
 
                 SendTcpData(_ToClient, _Packet);
+            }
+        }
+
+        public static void PlayerPosition(Player _Player)
+        {
+            using (Packet _Packet = new Packet((int)ServerPackets.playerPosition))
+            {
+                _Packet.Write(_Player.Id);
+                _Packet.Write(_Player.Position);
+
+                SendUdpDataToAll(_Packet);
+            }
+        }
+
+        public static void PlayerRotation(Player _Player)
+        {
+            using (Packet _Packet = new Packet((int)ServerPackets.playerRotation))
+            {
+                _Packet.Write(_Player.Id);
+                _Packet.Write(_Player.Rotation);
+
+                SendUdpDataToAll(_Player.Id, _Packet);
             }
         }
         #endregion

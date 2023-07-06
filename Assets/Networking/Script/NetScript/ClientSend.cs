@@ -11,6 +11,12 @@ public class ClientSend : MonoBehaviour
         Client.Instance.MyTcp.SendData(_Packet);
     }
 
+    private static void SendUDPData(Packet _packet)
+    {
+        _packet.WriteLength();
+        Client.Instance.MyUdp.SendData(_packet);
+    }
+
     #region Packets
     public static void WelcomeReceived()
     {
@@ -20,6 +26,21 @@ public class ClientSend : MonoBehaviour
             _Packet.Write(UIManager.Instance.UserName.text);
 
             SendTcpData(_Packet);
+        }
+    }
+
+    public static void PlayerMovement(bool[] _Inputs)
+    {
+        using (Packet _Packet = new Packet((int)ClientPackets.playerMovement))
+        {
+            _Packet.Write(_Inputs.Length);
+            foreach (bool _Input in _Inputs)
+            {
+                _Packet.Write(_Input);
+            }
+            _Packet.Write(NetGameManager.Players[Client.Instance.MyId].transform.rotation);
+
+            SendUDPData(_Packet);
         }
     }
     #endregion

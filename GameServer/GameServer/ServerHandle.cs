@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -22,6 +23,18 @@ namespace GameServer
                     $"Has Assumed The Wrong Client ID ({_ClientIdCheck})");
             }
             Server.Clients[_FromClient].SendIntoGame(_UserName);
+        }
+
+        public static void PlayerMovement(int _FromClient, Packet _Packet)
+        {
+            bool[] _Inputs = new bool[_Packet.ReadInt()];
+            for (int i = 0; i < _Inputs.Length; i++)
+            {
+                _Inputs[i] = _Packet.ReadBool();
+            }
+            Quaternion _Rotation = _Packet.ReadQuaternion();
+
+            Server.Clients[_FromClient].MyPlayer.SetInput(_Inputs, _Rotation);
         }
     }
 }
