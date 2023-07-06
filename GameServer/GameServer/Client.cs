@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,6 +14,7 @@ namespace GameServer
         public static int DataBufferSize = 4096;
 
         public int MyId;
+        public Player MyPlayer;
         public Tcp MyTcp;
         public Udp MyUdp;
 
@@ -22,7 +24,7 @@ namespace GameServer
             MyTcp = new Tcp(MyId);
             MyUdp = new Udp(MyId);
         }
-        
+
         public class Tcp
         {
             public TcpClient Socket;
@@ -57,12 +59,12 @@ namespace GameServer
             {
                 try
                 {
-                    if(Socket != null)
+                    if (Socket != null)
                     {
                         Stream.BeginWrite(_Packet.ToArray(), 0, _Packet.Length(), null, null);
                     }
                 }
-                catch(Exception _Ex)
+                catch (Exception _Ex)
                 {
                     Console.WriteLine($"Error Sending Data To Player {Id} Via Tcp {_Ex}");
                 }
@@ -73,9 +75,9 @@ namespace GameServer
                 try
                 {
                     int _ByteLength = Stream.EndRead(_Result);
-                    if(_ByteLength <= 0)
+                    if (_ByteLength <= 0)
                     {
-                        // TODO: 클라이언트 접속 종료
+                        Server.Clients[Id].Disconnect();
                         return;
                     }
 
@@ -88,7 +90,7 @@ namespace GameServer
                 catch (Exception _Ex)
                 {
                     Console.WriteLine($"Error Receiving TCP Data: {_Ex}");
-                    //TODO: 클라이언트 접속 종료
+                    Server.Clients[Id].Disconnect();
                 }
             }
 
@@ -137,6 +139,15 @@ namespace GameServer
 
                 return false;
             }
+
+            public void Disconnect()
+            {
+                Socket.Close();
+                Stream = null;
+                ReceiveData = null;
+                ReceiveBuffer = null;
+                Socket = null;
+            }
         }
 
         public class Udp
@@ -157,7 +168,7 @@ namespace GameServer
 
             public void SendData(Packet _Packet)
             {
-                Server.SendUdpData(EndPoint, _Packet);
+                Server.SendUDPData(EndPoint, _Packet);
             }
 
             public void HandleData(Packet _PacketData)
@@ -172,8 +183,47 @@ namespace GameServer
                         int _PacketId = _Packet.ReadInt();
                         Server.PacketHandlers[_PacketId](Id, _Packet);
                     }
-                })
+                });
             }
-        }   
+
+            public void Disconnect()
+            {
+                EndPoint = null;
+            }
+        }
+
+        public void SendIntoGame(string _PlayerName)
+        {
+            MyPlayer = new Player(MyId, _PlayerName, new Vector3(0, 0, 0));
+
+            foreach (Client _Client in Server.Clients.Values)
+            {
+                if (_Client.MyPlayer != null)
+                {
+                    if (_Client.MyId != MyId)
+                    {
+                        ServerSend.SpawnPlayer(MyId, _Client.MyPlayer);
+                    }
+                }
+            }
+
+            foreach (Client _Client in Server.Clients.Values)
+            {
+                if (_Client.MyPlayer != null)
+                {
+                    ServerSend.SpawnPlayer(_Client.MyId, MyPlayer);
+                }
+            }
+        }
+
+        private void Disconnect()
+        {
+            Console.WriteLine($"{MyTcp.Socket.Client.RemoteEndPoint} Has Disconnected.");
+
+            MyPlayer = null;
+
+            MyTcp.Disconnect();
+            MyUdp.Disconnect();
+        }
     }
 }

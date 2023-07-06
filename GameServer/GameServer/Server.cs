@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -33,7 +34,7 @@ namespace GameServer
             TcpListener.BeginAcceptTcpClient(new AsyncCallback(TCPConnectCallback), null);
 
             UdpListener = new UdpClient(Port);
-            UdpListener.BeginReceive(UdpReceiveCallback, null);
+            UdpListener.BeginReceive(UDPReceiveCallback, null);
 
             Console.WriteLine($"Server Started on {Port}");
         }
@@ -83,12 +84,31 @@ namespace GameServer
                         Clients[_ClientId].MyUdp.Connect(_ClientEndPoint);
                         return;
                     }
+
+                    if (Clients[_ClientId].MyUdp.EndPoint.ToString() == _ClientEndPoint.ToString())
+                    {
+                        Clients[_ClientId].MyUdp.HandleData(_Packet);
+                    }
                 }
             }
-            catch (Exception)
+            catch (Exception _Ex)
             {
+                Console.WriteLine($"Error Receiveing Udp Data: {_Ex}");
+            }
+        }
 
-                throw;
+        public static void SendUDPData(IPEndPoint _clientEndPoint, Packet _Packet)
+        {
+            try
+            {
+                if(_clientEndPoint != null)
+                {
+                    UdpListener.BeginSend(_Packet.ToArray(), _Packet.Length(), _clientEndPoint, null, null);
+                }
+            }
+            catch (Exception _Ex)
+            {
+                Console.WriteLine($"Error Sending Data To {_clientEndPoint} Via Udp: {_Ex}");
             }
         }
 
@@ -101,7 +121,8 @@ namespace GameServer
 
             PacketHandlers = new Dictionary<int, PacketHandler>()
             {
-                { (int)ClientPackets.welcomeReceived, ServerHandle.WelcomeReceived}
+                { (int)ClientPackets.welcomeReceived, ServerHandle.WelcomeReceived},
+                { (int)ClientPackets.playerMovement, ServerHandle.PlayerMovement},
             };
             Console.WriteLine("Initialized Packets");
         }

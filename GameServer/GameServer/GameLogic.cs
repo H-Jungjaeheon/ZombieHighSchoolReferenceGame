@@ -10,6 +10,14 @@ namespace GameServer
     {
         public static void Update()
         {
+            foreach (Client _Client in Server.Clients.Values)
+            {
+                if(_Client.MyPlayer != null)
+                {
+                    _Client.MyPlayer.Update();
+                }
+            }
+
             ThreadManager.UpdateMain();
         }
     }
