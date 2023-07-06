@@ -1,6 +1,7 @@
 using GameServer;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using UnityEngine;
 
 public class ClientHandle : MonoBehaviour
@@ -12,7 +13,8 @@ public class ClientHandle : MonoBehaviour
 
         Debug.Log($"Message From Server: {_Msg}");
         Client.Instance.MyId = _MyId;
-
         ClientSend.WelcomeReceived();
+
+        Client.Instance.MyUdp.Connect(((IPEndPoint)Client.Instance.MyTcp.Socket.Client.LocalEndPoint).Port);
     }
 }
