@@ -21,14 +21,7 @@ namespace GameServer
                 Console.WriteLine($"Player \"{_UserName}\" (ID: {_FromClient}) " +
                     $"Has Assumed The Wrong Client ID ({_ClientIdCheck})");
             }
-            //TODO: 플레이어 입장 메세지 전송
-        }
-
-        public static void UdpTestReceived(int _FromClient, Packet _Packet)
-        {
-            string _Msg = _Packet.ReadString();
-
-            Console.WriteLine($"Received Packet Via Udp. Contains Message: {_Msg}");
+            Server.Clients[_FromClient].SendIntoGame(_UserName);
         }
     }
 }

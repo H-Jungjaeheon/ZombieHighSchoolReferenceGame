@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine;
 
 namespace GameServer
 {
@@ -8,14 +9,16 @@ namespace GameServer
     public enum ServerPackets
     {
         welcome = 1,
-        udpTest
+        spawnPlayer,
+        playerPosition,
+        playerRotation
     }
 
     /// <summary>클라이언트에서 서버로 전송한다.</summary>
     public enum ClientPackets
     {
         welcomeReceived = 1,
-        udpTestReceived
+        playerMovement,
     }
 
     public class Packet : IDisposable
@@ -158,6 +161,29 @@ namespace GameServer
         {
             Write(_value.Length); // 패킷에 문자열 길이 추가
             buffer.AddRange(Encoding.ASCII.GetBytes(_value)); // 문자열 자체 추가
+        }
+        /// <summary>
+        /// 패킷에 Vector3 데이터를 추가한다.
+        /// </summary>
+        /// <param name="_value"> 추가 할 Vector3</param>
+        public void Write(Vector3 _value)
+        {
+            //패킷에 X, Y, Z값을 개별 저장
+            Write(_value.x);
+            Write(_value.y);
+            Write(_value.z);
+        }
+        /// <summary>
+        /// 패킷에 Quaternion 데이터를 추가한다.
+        /// </summary>
+        /// <param name="_value">추가 할 Quaternion</param>
+        public void Write(Quaternion _value)
+        {
+            //패킷에 X, Y, Z, W값을 개별 저장
+            Write(_value.x);
+            Write(_value.y);
+            Write(_value.z);
+            Write(_value.w);
         }
         #endregion
 
@@ -329,6 +355,24 @@ namespace GameServer
             {
                 throw new Exception("Could not read value of type 'string'!");
             }
+        }
+
+        /// <summary>
+        /// 패킷에서 Vector3를 읽는다.
+        /// </summary>
+        /// <param name="_moveReadPos">버퍼의 읽기 위치를 이동할지 여부</param>
+        public Vector3 ReadVector3(bool _moveReadPos = true)
+        {
+            return new Vector3(ReadFloat(_moveReadPos), ReadFloat(_moveReadPos), ReadFloat(_moveReadPos));
+        }
+
+        /// <summary>
+        /// 패킷에서 Quaternion를 읽는다.
+        /// </summary>
+        /// <param name="_moveReadPos">버퍼의 읽기 위치를 이동할지 여부</param>
+        public Quaternion ReadQuaternion(bool _moveReadPos = true)
+        {
+            return new Quaternion(ReadFloat(_moveReadPos), ReadFloat(_moveReadPos), ReadFloat(_moveReadPos), ReadFloat(_moveReadPos));
         }
         #endregion
 
