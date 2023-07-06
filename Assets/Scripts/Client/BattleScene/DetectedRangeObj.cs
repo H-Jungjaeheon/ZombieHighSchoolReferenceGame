@@ -20,6 +20,9 @@ public class DetectedRangeObj : MonoBehaviour
     [Tooltip("플레이어 태그")]
     private const string PLAYER = "Player";
 
+    [Tooltip("플레이어를 감지했는지 판별")]
+    private bool isFindPlayer;
+
     private void Start()
     {
         ColliderSizeSetting(sensingRange);
@@ -43,8 +46,10 @@ public class DetectedRangeObj : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag(PLAYER))
+        if (isFindPlayer == false && collision.CompareTag(PLAYER))
         {
+            isFindPlayer = true;
+
             basicEnemy.DetectedPlayer(collision.gameObject);
 
             ColliderSizeSetting(90);
