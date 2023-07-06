@@ -7,13 +7,15 @@ namespace GameServer
     /// <summary>서버에서 클라이언트로 전송한다.</summary>
     public enum ServerPackets
     {
-        welcome = 1
+        welcome = 1,
+        udpTest
     }
 
     /// <summary>클라이언트에서 서버로 전송한다.</summary>
     public enum ClientPackets
     {
-        welcomeReceived = 1
+        welcomeReceived = 1,
+        udpTestReceived
     }
 
     public class Packet : IDisposable

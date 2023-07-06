@@ -17,4 +17,12 @@ public class ClientHandle : MonoBehaviour
 
         Client.Instance.MyUdp.Connect(((IPEndPoint)Client.Instance.MyTcp.Socket.Client.LocalEndPoint).Port);
     }
+
+    public static void UdpTest(Packet _Packet)
+    {
+        string _Msg = _Packet.ReadString();
+
+        Debug.Log($"Receive Packet Via Udp. Contains Message: {_Msg}");
+        ClientSend.UdpTestReceived();
+    }
 }

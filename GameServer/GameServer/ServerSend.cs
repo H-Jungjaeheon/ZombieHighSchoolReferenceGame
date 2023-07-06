@@ -14,6 +14,12 @@ namespace GameServer
             Server.Clients[_ToClient].MyTcp.SendData(_Packet);
         }
 
+        private static void SendUdpData(int _ToClient, Packet _Packet)
+        {
+            _Packet.WriteLength();
+            Server.Clients[_ToClient].MyUdp.SendData(_Packet);
+        }
+
         private static void SendTcpDataToAll(Packet _Packet)
         {
             _Packet.WriteLength();
@@ -35,6 +41,28 @@ namespace GameServer
             }
         }
 
+        private static void SendUdpDataToAll(Packet _Packet)
+        {
+            _Packet.WriteLength();
+            for (int i = 1; i <= Server.MaxPlayers; i++)
+            {
+                Server.Clients[i].MyTcp.SendData(_Packet);
+            }
+        }
+
+        private static void SendUdpDataToAll(int _ExceptClient, Packet _Packet)
+        {
+            _Packet.WriteLength();
+            for (int i = 1; i <= Server.MaxPlayers; i++)
+            {
+                if (i != _ExceptClient)
+                {
+                    Server.Clients[i].MyTcp.SendData(_Packet);
+                }
+            }
+        }
+
+        #region Packets
         public static void Welcome(int _ToClient, string _Msg)
         {
             using(Packet _Packet = new Packet((int)ServerPackets.welcome))
@@ -45,5 +73,16 @@ namespace GameServer
                 SendTcpData(_ToClient, _Packet);
             }
         }
+
+        public static void UdpTest(int _ToClient)
+        {
+            using (Packet _Packet = new Packet((int)ServerPackets.udpTest))
+            {
+                _Packet.Write("A Test Packet For Udp");
+
+                SendTcpData(_ToClient, _Packet);
+            }
+        }
+        #endregion
     }
 }

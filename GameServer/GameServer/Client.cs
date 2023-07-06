@@ -153,11 +153,12 @@ namespace GameServer
             public void Connect(IPEndPoint _EndPoint)
             {
                 EndPoint = _EndPoint;
+                ServerSend.UdpTest(Id);
             }
 
             public void SendData(Packet _Packet)
             {
-                Server.SendUdpData(EndPoint, _Packet);
+                Server.SendUDPData(EndPoint, _Packet);
             }
 
             public void HandleData(Packet _PacketData)
@@ -172,7 +173,7 @@ namespace GameServer
                         int _PacketId = _Packet.ReadInt();
                         Server.PacketHandlers[_PacketId](Id, _Packet);
                     }
-                })
+                });
             }
         }   
     }
