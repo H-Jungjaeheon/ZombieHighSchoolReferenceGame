@@ -3,6 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+public enum Direction
+{
+    Left,
+    Right,
+    Down,
+    Up,
+    LeftUp,
+    LeftDown,
+    RightUp,
+    RightDown
+}
+
 [System.Serializable]
 public class Node
 {
@@ -28,6 +40,9 @@ public class Node
 
     [Tooltip("현재 노드의 포지션")]
     public Vector2Int nodePos;
+
+    [Tooltip("다음 노드로의 방향")]
+    public Direction direction;
 
     [Tooltip("시작으로부터 이동한 거리")]
     public int gCost;
@@ -79,27 +94,22 @@ public class BasicEnemy : MonoBehaviour
     [Tooltip("현재 맵 크기 저장용 Vector")]
     private Vector2Int mapSize;
 
-    [Tooltip("현재 노드가 벽인지 판별")]
-    private bool isWall;
-
-    [SerializeField]
-    [Tooltip("최종 경로 노드 리스트")]
-    public List<Node> finalNodeList;
-
     [Tooltip("경로 시작 노드")]
     private Node startNode;
 
     [Tooltip("목적지 노드")]
     private Node targetNode;
 
+    [SerializeField]
+    [Tooltip("최종 경로 노드 리스트")]
+    public List<Node> finalNodeList;
+
     [Tooltip("경로 탐색 가능한 노드 리스트")]
     private List<Node> openList = new List<Node>();
 
+    [SerializeField]
     [Tooltip("현재 맵의 전체 노드 리스트")]
     private List<Node> curMapNodes = new List<Node>();
-
-    [Tooltip("벽 태그")]
-    private const string WALL = "Wall";
     #endregion
 
     private void Awake()
@@ -115,8 +125,6 @@ public class BasicEnemy : MonoBehaviour
         hp = enemyData.maxHp;
 
         mapSize = new Vector2Int(87, 66); //게임 매니저에서 현재 스테이지에 맞는 맵 크기 받아오는 것으로 수정
-
-        MapSetting();
     }
 
     /// <summary>
@@ -175,78 +183,7 @@ public class BasicEnemy : MonoBehaviour
     {
         playerComponent = detectedPlayerObj.GetComponent<Player>();
 
-        StartCoroutine(PathFind());
-    }
-
-    /// <summary>
-    /// 길 찾기 함수
-    /// </summary>
-    /// <returns></returns>
-    private IEnumerator PathFind()
-    {
-        openList.Clear();
-        finalNodeList.Clear();
-
-        startNode = curMapNodes[(int)transform.position.y * mapSize.x + (int)transform.position.x];
-        targetNode = curMapNodes[(int)playerComponent.moveTargetPos.y * mapSize.x + (int)playerComponent.moveTargetPos.x];
-
-        startNode.gCost = 0;
-        startNode.hCost = Heuristic(startNode.nodePos, targetNode.nodePos);
-        openList.Add(startNode);
-
-        Node currentNode;
-
-        //경로 탐색
-        while (openList.Count > 0)
-        {
-            currentNode = openList[0];
-            
-            for (int i = 1; i < openList.Count; i++)
-            {
-                if (openList[i].fCost < currentNode.fCost)
-                {
-                    currentNode = openList[i];
-                }
-            }
-
-            openList.Remove(currentNode);
-
-            if (currentNode == targetNode) // 현재 노드가 끝 노드라면
-            {
-                while (currentNode.parentNode != null)
-                {
-                    finalNodeList.Add(currentNode);
-                    currentNode = currentNode.parentNode;
-                }
-
-                finalNodeList.Reverse();
-
-                StartCoroutine(Move());
-
-                yield break;
-            }
-
-            if (currentNode.isWall == false)
-            {
-                Right(currentNode);
-
-                Down(currentNode);
-
-                Left(currentNode);
-
-                Up(currentNode);
-
-                RightUp(currentNode);
-
-                RightDown(currentNode);
-
-                LeftUP(currentNode);
-
-                LeftDown(currentNode);
-            }
-
-            currentNode.isWall = true;    // 한번 간 노드 
-        }
+        MapSetting();
     }
 
     /// <summary>
@@ -269,12 +206,7 @@ public class BasicEnemy : MonoBehaviour
         {
             currentNode.isWall = isMoveAble;
 
-            if (CheakNextNode(x + 1, y) == false) // 탐색 가능 여부(현재 탐색하려는 범위가 맵 크기보다 크면 취소)
-            {
-                break;
-            }
-
-            currentNode = curMapNodes[(y * mapSize.x) + ++x];//GetGrid(++x, y); // 다음 오른쪽 노드로 이동
+            currentNode = curMapNodes[(y * mapSize.x) + ++x]; // 다음 오른쪽 노드로 이동
 
             if (currentNode.isWall) //다음 노드가 벽이면 종료
             {
@@ -358,11 +290,6 @@ public class BasicEnemy : MonoBehaviour
         while (currentNode.isWall == false)
         {
             currentNode.isWall = isMoveAble;
-
-            if (CheakNextNode(x - 1, y) == false) // 탐색 가능 여부(현재 탐색하려는 범위가 맵 크기보다 크면 취소)
-            {
-                break;
-            }
 
             currentNode = curMapNodes[(y * mapSize.x) + --x]; // 다음 노드로 이동
 
@@ -448,11 +375,6 @@ public class BasicEnemy : MonoBehaviour
         {
             currentNode.isWall = isMoveAble;
 
-            if (CheakNextNode(x, y + 1) == false) // 탐색 가능 여부(현재 탐색하려는 범위가 맵 크기보다 크면 취소)
-            {
-                break;
-            }
-
             currentNode = curMapNodes[(++y * mapSize.x) + x]; // 다음 노드로 이동
 
             if (currentNode.isWall) //다음 노드가 벽이면 종료
@@ -537,11 +459,6 @@ public class BasicEnemy : MonoBehaviour
         {
             currentNode.isWall = isMoveAble;
 
-            if (CheakNextNode(x, y - 1) == false) // 탐색 가능 여부(현재 탐색하려는 범위가 맵 크기보다 크면 취소)
-            {
-                break;
-            }
-
             currentNode = curMapNodes[(--y * mapSize.x) + x]; // 다음 노드로 이동
 
             if (currentNode.isWall) //다음 노드가 벽이면 종료
@@ -622,11 +539,6 @@ public class BasicEnemy : MonoBehaviour
         {
             currentNode.isWall = true;
 
-            if (CheakNextNode(x + 1, y + 1) == false) // 탐색 가능 여부(현재 탐색하려는 범위가 맵 크기보다 크면 취소)
-            {
-                break;
-            }
-
             currentNode = curMapNodes[(++y * mapSize.x) + ++x]; // 다음 노드로 이동
 
             if (currentNode.isWall) //다음 노드가 벽이면 종료
@@ -703,11 +615,6 @@ public class BasicEnemy : MonoBehaviour
         while (currentNode.isWall == false)
         {
             currentNode.isWall = true;
-
-            if (CheakNextNode(x + 1, y - 1) == false) // 탐색 가능 여부(현재 탐색하려는 범위가 맵 크기보다 크면 취소)
-            {
-                break;
-            }
 
             currentNode = curMapNodes[(--y * mapSize.x) + ++x]; // 다음 노드로 이동
 
@@ -786,11 +693,6 @@ public class BasicEnemy : MonoBehaviour
         {
             currentNode.isWall = true;
 
-            if (CheakNextNode(x - 1, y + 1) == false) // 탐색 가능 여부(현재 탐색하려는 범위가 맵 크기보다 크면 취소)
-            {
-                break;
-            }
-
             currentNode = curMapNodes[(++y * mapSize.x) + --x]; // 다음 노드로 이동
 
             if (currentNode.isWall)
@@ -868,11 +770,6 @@ public class BasicEnemy : MonoBehaviour
         {
             currentNode.isWall = true;
 
-            if (CheakNextNode(x - 1, y - 1) == false) // 탐색 가능 여부(현재 탐색하려는 범위가 맵 크기보다 크면 취소)
-            {
-                break;
-            }
-
             currentNode = curMapNodes[(--y * mapSize.x) + --x]; // 다음 노드로 이동
 
             if (currentNode.isWall)
@@ -915,6 +812,20 @@ public class BasicEnemy : MonoBehaviour
                 }
             }
 
+            cornerCheakNode = curMapNodes[(y + 1) * mapSize.x + x];
+
+            if (cornerCheakNode.isWall) // 코너 탐색 : 위쪽이 막혀있고 왼쪽 위가 막혀있지 않으면
+            {
+                cornerCheakNode = curMapNodes[(y + 1) * mapSize.x + x - 1];
+
+                if (cornerCheakNode.isWall == false) // 왼쪽 위가 안막힘
+                {
+                    AddOpenList(currentNode, startNode);
+
+                    break; 
+                }
+            }
+
             if (Left(currentNode, true) == true)
             {
                 AddOpenList(currentNode, startNode);
@@ -934,50 +845,136 @@ public class BasicEnemy : MonoBehaviour
     }
 
     /// <summary>
-    /// 탐색 가능 여부 체크 함수
-    /// </summary>
-    /// <param name="nodeXPos"></param>
-    /// <param name="nodeYPos"></param>
-    /// <returns></returns>
-    private bool CheakNextNode(int nodeXPos, int nodeYPos)
-    {
-        if (nodeXPos < 0 || nodeYPos < 0 || nodeXPos >= mapSize.x || nodeYPos >= mapSize.y)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    /// <summary>
     /// 현재 맵 노드 세팅 함수
     /// </summary>
     private void MapSetting()
     {
-        Node curMapNode;
+        Collider2D[] nodeCol; //벽 노드 판별용 콜라이더
+        Vector2 curNodePos; //맵에서의 현재 노드 포지션
+        Node curNode;
+        bool isWall;
 
-        curMapNodes.Clear();
+        curMapNodes.Clear(); //현재 맵 노드 리스트 초기화(비우기)
 
-        for (int i = 0; i < mapSize.y; i++)
+        for (int i = 0; i < mapSize.y; i++) //현재 맵의 세로 길이만큼 반복
         {
-            for (int j = 0; j < mapSize.x; j++)
+            for (int j = 0; j < mapSize.x; j++) //현재 맵의 가로 길이만큼 반복
             {
                 isWall = false;
 
-                foreach (Collider2D collider in Physics2D.OverlapCircleAll(new Vector2(j, i), 0.2f))
+                curNodePos.x = j;
+                curNodePos.y = i;
+
+                nodeCol = Physics2D.OverlapCircleAll(curNodePos, 0.2f);
+
+                for (int k = 0; k < nodeCol.Length; k++)
                 {
-                    if (collider.gameObject.CompareTag(WALL))
+                    if (nodeCol[k].gameObject.CompareTag("Wall"))
                     {
                         isWall = true;
                     }
                 }
 
-                curMapNode = new Node(isWall, j, i);
-
-                curMapNodes.Add(curMapNode);
+                curNode = new Node(isWall, j, i);
+                curMapNodes.Add(curNode); //현재 맵 노드 리스트에 추가 (콜라이더로 판별한 노드 태그가 벽이면, 벽 노드로 생성)
             }
         }
+
+        StartCoroutine(PathFind());
     }
+
+    /// <summary>
+    /// 길 찾기 함수
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator PathFind()
+    {
+        Node currentNode;
+
+        openList.Clear(); //오픈 리스트 초기화
+        finalNodeList.Clear(); //최종 경로 리스트 초기화
+
+        startNode = curMapNodes[(int)transform.position.y * mapSize.x + (int)transform.position.x]; //시작 노드 세팅(현재 맵 노드 리스트에서 포지션을 이용한 번호로 구함)
+        targetNode = curMapNodes[(int)playerComponent.moveTargetPos.y * mapSize.x + (int)playerComponent.moveTargetPos.x - 1]; //목표 노드 세팅(현재 맵 노드 리스트에서 포지션을 이용한 번호로 구함)
+
+        startNode.gCost = 0; //시작 노드의 이동 거리 데이터 초기화
+        startNode.hCost = Heuristic(startNode.nodePos, targetNode.nodePos); //시작 노드의 휴리스틱 데이터 연산 후 추가
+        openList.Add(startNode); //오픈 리스트 시작 노드 추가
+
+        while (openList.Count > 0) //경로 탐색 시작 (오픈리스트가 없을 때 까지 반복)
+        {
+            currentNode = openList[0]; //현재 노드를 오픈리스트의 0번째 값으로 넣기
+
+            for (int i = 1; i < openList.Count; i++)
+            {
+                if (openList[i].fCost < currentNode.fCost) //전체 오픈리스트를 순회하여 현재 노드보다 휴리스틱 값이 적은 노드를 현재 노드로 선택
+                {
+                    currentNode = openList[i];
+                }
+            }
+
+            openList.Remove(currentNode); //오픈 리스트 중 휴리스틱 값이 제일 적은 노드 빼기
+
+            if (currentNode == targetNode) // 현재 노드가 끝 노드라면 부모 노드들 추적하여 움직임 시작
+            {
+                while (currentNode.parentNode != null)
+                {
+                    finalNodeList.Add(currentNode);
+                    currentNode = currentNode.parentNode;
+                }
+
+                finalNodeList.Reverse();
+
+                StartCoroutine(Move());
+
+                yield break;
+            }
+
+            if (currentNode.isWall == false)
+            {
+                Right(currentNode);
+
+                Down(currentNode);
+
+                Left(currentNode);
+
+                Up(currentNode);
+
+                RightUp(currentNode);
+
+                RightDown(currentNode);
+
+                LeftUP(currentNode);
+
+                LeftDown(currentNode);
+            }
+
+            currentNode.isWall = true;    // 한번 간 노드 
+        }
+    }
+
+    //private void Test()
+    //{
+    //    for (int i = 0; i < curMapNodes.Count; i++)
+    //    {
+    //        isWall = false;
+
+    //        foreach (Collider2D collider in Physics2D.OverlapCircleAll(curMapNodes[i].nodePos, 0.2f))
+    //        {
+    //            if (collider.gameObject.CompareTag(WALL))
+    //            {
+    //                isWall = true;
+    //            }
+    //        }
+
+    //        curMapNodes[i].isWall = isWall;
+
+    //        curMapNodes[i].gCost = 0;
+    //        curMapNodes[i].hCost = 0;
+    //    }
+
+    //    StartCoroutine(PathFind());
+    //}
 
     /// <summary>
     /// 휴리스틱 함수 (도착 노드까지 가장 짧은 경로의 값을 반환)
@@ -1018,7 +1015,7 @@ public class BasicEnemy : MonoBehaviour
 
         targetPos.x = targetNode.nodePos.x;
         targetPos.y = targetNode.nodePos.y;
-
+        
         for (int nowIndex = 0; nowIndex < finalNodeList.Count; nowIndex++)
         {
             curTargetPos.x = finalNodeList[nowIndex].nodePos.x;
@@ -1026,26 +1023,26 @@ public class BasicEnemy : MonoBehaviour
 
             while (true)
             {
-                if (transform.position.x == curTargetPos.x && transform.position.y == curTargetPos.y)
-                {
-                    break;
-                }
-
-                transform.position = Vector3.MoveTowards(transform.position, curTargetPos, Time.deltaTime * enemyData.Speed);
-
+                transform.Translate(Vector3.right * Time.deltaTime * enemyData.Speed);
+                
                 yield return null;
             }
 
-            if (playerComponent.moveTargetPos != targetPos)
-            {
-                MapSetting();
 
-                yield return new WaitForSeconds(0.1f);
-                
-                StartCoroutine(PathFind());
+            //while (transform.position.x != curTargetPos.x && transform.position.y != curTargetPos.y)
+            //{
+            //    transform.position = Vector3.MoveTowards(transform.position, curTargetPos, Time.deltaTime * enemyData.Speed);
 
-                break;
-            }
+            //    yield return null;
+            //}
+
+            //if (playerComponent.moveTargetPos != targetPos)
+            //{
+            //    MapSetting();
+            //    //Test();
+
+            //    break;
+            //}
         }
     }
 

@@ -39032,6 +39032,7 @@ MonoBehaviour:
   sr: {fileID: 1651256862}
   playerComponent: {fileID: 0}
   finalNodeList: []
+  curMapNodes: []
 --- !u!1 &48739007
 GameObject:
   m_ObjectHideFlags: 0
@@ -40741,6 +40742,7 @@ MonoBehaviour:
   sr: {fileID: 1184440095}
   playerComponent: {fileID: 0}
   finalNodeList: []
+  curMapNodes: []
 --- !u!61 &839108398
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -40796,7 +40798,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 839108396}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 12, y: 26, z: 0}
+  m_LocalPosition: {x: 13, y: 23, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1184440096}
@@ -40841,6 +40843,7 @@ MonoBehaviour:
   sr: {fileID: 590892940}
   playerComponent: {fileID: 0}
   finalNodeList: []
+  curMapNodes: []
 --- !u!61 &858224009
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -68511,7 +68514,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   basicEnemy: {fileID: 839108397}
-  sensingRange: 40
+  sensingRange: 30
   boxCollider: {fileID: 1628331978}
 --- !u!50 &1628331977
 Rigidbody2D:
