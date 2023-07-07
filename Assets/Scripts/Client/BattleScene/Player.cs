@@ -108,7 +108,7 @@ public class Player : MonoBehaviour
                 yield return null;
             }
 
-            endPos = (Vector3)moveVector + transform.position;
+            endPos = moveVector + transform.position;
 
             if (curMoveState == MoveState.Up || curMoveState == MoveState.Down)
             {
