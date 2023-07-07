@@ -9,6 +9,26 @@ public class PlayerController : MonoBehaviour
         SendInputToServer();
     }
 
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            ClientSend.PlayerShoot(Vector3.up);
+        }
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            ClientSend.PlayerShoot(Vector3.down);
+        }
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            ClientSend.PlayerShoot(Vector3.right);
+        }
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            ClientSend.PlayerShoot(Vector3.left);
+        }
+    }
+
     private void SendInputToServer()
     {
         bool[] _Inputs = new bool[]

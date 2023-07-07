@@ -40,8 +40,7 @@ public class NetGameManager : MonoBehaviour
             _Player = Instantiate(PlayerPrefab, _Position, _Rotation);
         }
 
-        _Player.GetComponent<PlayerManager>().Id = _Id;
-        _Player.GetComponent<PlayerManager>().UserName = _UserName;
+        _Player.GetComponent<PlayerManager>().Initialize(_Id, _UserName);
         Players.Add(_Id, _Player.GetComponent<PlayerManager>());
     }
 }

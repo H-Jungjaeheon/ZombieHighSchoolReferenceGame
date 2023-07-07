@@ -97,3 +97,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Id: 0
   UserName: 
+  Renderer: {fileID: 6729924202382779972}
+  Health: 0
+  MaxHealth: 100

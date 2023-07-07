@@ -43,4 +43,27 @@ public class ClientHandle : MonoBehaviour
 
         NetGameManager.Players[_Id].transform.rotation = _Rotation;
     }
+
+    public static void PlayerDisconnected(Packet _Packet)
+    {
+        int _Id = _Packet.ReadInt();
+
+        Destroy(NetGameManager.Players[_Id].gameObject);
+        NetGameManager.Players.Remove(_Id);
+    }
+
+    public static void PlayerHealth(Packet _Packet)
+    {
+        int _Id = _Packet.ReadInt();
+        float _Health = _Packet.ReadFloat();
+
+        NetGameManager.Players[_Id].SetHealth( _Health );
+    }
+
+    public static void PlayerRespawned(Packet _Packet)
+    {
+        int _Id = _Packet.ReadInt();
+
+        NetGameManager.Players[_Id].Respawn();
+    }
 }

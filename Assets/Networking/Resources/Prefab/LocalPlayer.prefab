@@ -98,6 +98,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Id: 0
   UserName: 
+  Renderer: {fileID: 7276606108964804649}
+  Health: 0
+  MaxHealth: 100
 --- !u!114 &934235048078215838
 MonoBehaviour:
   m_ObjectHideFlags: 0
