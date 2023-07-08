@@ -16,6 +16,16 @@ public enum Direction
 }
 
 [System.Serializable]
+public struct PathNodeData
+{
+    [Tooltip("현재 경로 노드 위치")]
+    public Vector2 pos;
+
+    [Tooltip("현재 경로 노드 방향(이전 노드에서 현재 노드로 이동할 때)")]
+    public Vector2 direction;
+}
+
+[System.Serializable]
 public class Node
 {
     /// <summary>
@@ -41,7 +51,7 @@ public class Node
     [Tooltip("현재 노드의 포지션")]
     public Vector2Int nodePos;
 
-    [Tooltip("다음 노드로의 방향")]
+    [Tooltip("이전 노드에서 현재 노드로 향해야할 방향")]
     public Direction direction;
 
     [Tooltip("시작으로부터 이동한 거리")]
@@ -101,15 +111,23 @@ public class BasicEnemy : MonoBehaviour
     private Node targetNode;
 
     [SerializeField]
-    [Tooltip("최종 경로 노드 리스트")]
-    public List<Node> finalNodeList;
+    [Tooltip("현재 맵의 전체 노드 리스트")]
+    private List<Node> curMapNodes = new List<Node>();
 
+    [SerializeField]
     [Tooltip("경로 탐색 가능한 노드 리스트")]
     private List<Node> openList = new List<Node>();
 
     [SerializeField]
-    [Tooltip("현재 맵의 전체 노드 리스트")]
-    private List<Node> curMapNodes = new List<Node>();
+    [Tooltip("최종 경로 노드 리스트")]
+    private List<Node> finalNodeList = new List<Node>();
+
+    [SerializeField]
+    [Tooltip("최종 경로 데이터 리스트")]
+    private List<PathNodeData> finalPathDatas;
+
+    [Tooltip("최종 경로 설정에 쓰일 경로 데이터")]
+    private PathNodeData curPathNodeData = new PathNodeData();
     #endregion
 
     private void Awake()
@@ -206,7 +224,7 @@ public class BasicEnemy : MonoBehaviour
         {
             currentNode.isWall = isMoveAble;
 
-            currentNode = curMapNodes[(y * mapSize.x) + ++x]; // 다음 오른쪽 노드로 이동
+            currentNode = curMapNodes[(y * (mapSize.x + 1)) + ++x]; // 다음 오른쪽 노드로 이동
 
             if (currentNode.isWall) //다음 노드가 벽이면 종료
             {
@@ -219,22 +237,24 @@ public class BasicEnemy : MonoBehaviour
 
                 if (isMoveAble == false)
                 {
+                    currentNode.direction = Direction.Right;
                     AddOpenList(currentNode, startNode);
                 }
 
                 break;
             }
 
-            cornerCheakNode = curMapNodes[(y + 1 * mapSize.x) + x];
+            cornerCheakNode = curMapNodes[(y + 1) * (mapSize.x + 1) + x];
 
             if (cornerCheakNode.isWall) // 코너 체크 : 위쪽이 막혀 있으면서 오른쪽 위는 뚫려있는 경우
             {
-                cornerCheakNode = curMapNodes[(y + 1) * mapSize.x + x + 1];
+                cornerCheakNode = curMapNodes[(y + 1) * (mapSize.x + 1) + x + 1];
 
                 if (cornerCheakNode.isWall == false) // 오른쪽 위가 막혀있지 않으면
                 {
                     if (isMoveAble == false)
                     {
+                        currentNode.direction = Direction.Right;
                         AddOpenList(currentNode, startNode);
                     }
 
@@ -244,16 +264,17 @@ public class BasicEnemy : MonoBehaviour
                 }
             }
 
-            cornerCheakNode = curMapNodes[(y - 1) * mapSize.x + x];
+            cornerCheakNode = curMapNodes[(y - 1) * (mapSize.x + 1) + x];
 
             if (cornerCheakNode.isWall) // 코너 체크 : 아래가 막혀 있으면서 오른쪽 아래는 뚫려있는 경우
             {
-                cornerCheakNode = curMapNodes[(y - 1) * mapSize.x + x + 1];
+                cornerCheakNode = curMapNodes[(y - 1) * (mapSize.x + 1) + x + 1];
 
                 if (cornerCheakNode.isWall == false) // 오른쪽 아래가 막혀 있지 않으면
                 {
                     if (isMoveAble == false)
                     {
+                        currentNode.direction = Direction.Right;
                         AddOpenList(currentNode, startNode);
                     }
 
@@ -291,7 +312,7 @@ public class BasicEnemy : MonoBehaviour
         {
             currentNode.isWall = isMoveAble;
 
-            currentNode = curMapNodes[(y * mapSize.x) + --x]; // 다음 노드로 이동
+            currentNode = curMapNodes[(y * (mapSize.x + 1)) + --x]; // 다음 노드로 이동
 
             if (currentNode.isWall) //다음 노드가 벽이면 종료
             {
@@ -304,17 +325,18 @@ public class BasicEnemy : MonoBehaviour
 
                 if (isMoveAble == false)
                 {
+                    currentNode.direction = Direction.Left;
                     AddOpenList(currentNode, startNode);
                 }
 
                 break;
             }
 
-            cornerCheakNode = curMapNodes[(y + 1) * mapSize.x + x];
+            cornerCheakNode = curMapNodes[(y + 1) * (mapSize.x + 1) + x];
             
             if (cornerCheakNode.isWall) // 코너 체크 : 위쪽이 막혀 있으면서 왼쪽 위는 뚫려있는 경우
             {
-                cornerCheakNode = curMapNodes[(y + 1) * mapSize.x + x - 1];
+                cornerCheakNode = curMapNodes[(y + 1) * (mapSize.x + 1) + x - 1];
 
                 if (cornerCheakNode.isWall == false) // 왼쪽 위가 막혀있지 않으면
                 {
@@ -322,6 +344,7 @@ public class BasicEnemy : MonoBehaviour
 
                     if (isMoveAble == false)
                     {
+                        currentNode.direction = Direction.Left;
                         AddOpenList(currentNode, startNode);
                     }
 
@@ -329,11 +352,11 @@ public class BasicEnemy : MonoBehaviour
                 }
             }
 
-            cornerCheakNode = curMapNodes[(y - 1) * mapSize.x + x];
+            cornerCheakNode = curMapNodes[(y - 1) * (mapSize.x + 1) + x];
 
             if (cornerCheakNode.isWall) // 코너 체크 : 아래가 막혀 있으면서 왼쪽 아래는 뚫려있는 경우
             {
-                cornerCheakNode = curMapNodes[(y - 1) * mapSize.x + x - 1];
+                cornerCheakNode = curMapNodes[(y - 1) * (mapSize.x + 1) + x - 1];
                 
                 if (cornerCheakNode.isWall == false) // 왼쪽 아래가 막혀 있지 않으면
                 {
@@ -341,6 +364,7 @@ public class BasicEnemy : MonoBehaviour
 
                     if (isMoveAble == false)
                     {
+                        currentNode.direction = Direction.Left;
                         AddOpenList(currentNode, startNode);
                     }
 
@@ -375,7 +399,7 @@ public class BasicEnemy : MonoBehaviour
         {
             currentNode.isWall = isMoveAble;
 
-            currentNode = curMapNodes[(++y * mapSize.x) + x]; // 다음 노드로 이동
+            currentNode = curMapNodes[(++y * (mapSize.x + 1)) + x]; // 다음 노드로 이동
 
             if (currentNode.isWall) //다음 노드가 벽이면 종료
             {
@@ -386,6 +410,7 @@ public class BasicEnemy : MonoBehaviour
             {
                 if (isMoveAble == false)
                 {
+                    currentNode.direction = Direction.Up;
                     AddOpenList(currentNode, startNode);
                 }
 
@@ -394,16 +419,17 @@ public class BasicEnemy : MonoBehaviour
                 break;
             }
 
-            cornerCheakNode = curMapNodes[(y * mapSize.x) + x + 1];
+            cornerCheakNode = curMapNodes[(y * (mapSize.x + 1)) + x + 1];
 
             if (cornerCheakNode.isWall) // 코너 체크 : 위쪽이 막혀 있으면서 왼쪽 위는 뚫려있는 경우 
             {
-                cornerCheakNode = curMapNodes[(y + 1) * mapSize.x + x + 1];
+                cornerCheakNode = curMapNodes[(y + 1) * (mapSize.x + 1) + x + 1];
 
                 if (cornerCheakNode.isWall == false) // 오른쪽 위가
                 {
                     if (isMoveAble == false)
                     {
+                        currentNode.direction = Direction.Up;
                         AddOpenList(currentNode, startNode);
                     }
 
@@ -413,16 +439,17 @@ public class BasicEnemy : MonoBehaviour
                 }
             }
 
-            cornerCheakNode = curMapNodes[(y * mapSize.x) + x - 1];
+            cornerCheakNode = curMapNodes[(y * (mapSize.x + 1)) + x - 1];
 
             if (cornerCheakNode.isWall) // 코너 체크 : 위쪽이 막혀 있으면서 왼쪽 아래는 뚫려있는 경우
             {
-                cornerCheakNode = curMapNodes[(y + 1) * mapSize.x + x - 1];
+                cornerCheakNode = curMapNodes[(y + 1) * (mapSize.x + 1) + x - 1];
 
                 if (cornerCheakNode.isWall == false) // 왼쪽 위가 막혀 있지 않으면
                 {
                     if (isMoveAble == false)
                     {
+                        currentNode.direction = Direction.Up;
                         AddOpenList(currentNode, startNode);
                     }
 
@@ -459,7 +486,7 @@ public class BasicEnemy : MonoBehaviour
         {
             currentNode.isWall = isMoveAble;
 
-            currentNode = curMapNodes[(--y * mapSize.x) + x]; // 다음 노드로 이동
+            currentNode = curMapNodes[(--y * (mapSize.x + 1)) + x]; // 다음 노드로 이동
 
             if (currentNode.isWall) //다음 노드가 벽이면 종료
             {
@@ -470,6 +497,7 @@ public class BasicEnemy : MonoBehaviour
             {
                 if (isMoveAble == false)
                 {
+                    currentNode.direction = Direction.Down;
                     AddOpenList(currentNode, startNode);
                 }
 
@@ -478,16 +506,17 @@ public class BasicEnemy : MonoBehaviour
                 break;
             }
 
-            cornerCheakNode = curMapNodes[(y * mapSize.x) + x + 1];
+            cornerCheakNode = curMapNodes[(y * (mapSize.x + 1)) + x + 1];
 
             if (cornerCheakNode.isWall) // 코너 체크 : 오른쪽이 막혀 있으면서 오른쪽 아래는 뚫려있는 경우
             {
-                cornerCheakNode = curMapNodes[(y - 1) * mapSize.x + x + 1];
+                cornerCheakNode = curMapNodes[(y - 1) * (mapSize.x + 1) + x + 1];
 
                 if (cornerCheakNode.isWall == false) // 오른쪽 아래가 갈 수 있다면
                 {
                     if (isMoveAble == false)
                     {
+                        currentNode.direction = Direction.Down;
                         AddOpenList(currentNode, startNode);
                     }
 
@@ -497,16 +526,17 @@ public class BasicEnemy : MonoBehaviour
                 }
             }
 
-            cornerCheakNode = curMapNodes[(y * mapSize.x) + x - 1];
+            cornerCheakNode = curMapNodes[(y * (mapSize.x + 1)) + x - 1];
 
             if (cornerCheakNode.isWall) // 코너 체크 : 왼쪽이 막혀 있으면서 왼쪽 아래는 뚫려있는 경우
             {
-                cornerCheakNode = curMapNodes[(y - 1) * mapSize.x + x - 1];
+                cornerCheakNode = curMapNodes[(y - 1) * (mapSize.x + 1) + x - 1];
 
                 if (cornerCheakNode.isWall == false) // 왼쪽 아래가 막혀 있지 않으면
                 {
                     if (isMoveAble == false)
                     {
+                        currentNode.direction = Direction.Down;
                         AddOpenList(currentNode, startNode);
                     }
 
@@ -539,7 +569,7 @@ public class BasicEnemy : MonoBehaviour
         {
             currentNode.isWall = true;
 
-            currentNode = curMapNodes[(++y * mapSize.x) + ++x]; // 다음 노드로 이동
+            currentNode = curMapNodes[(++y * (mapSize.x + 1)) + ++x]; // 다음 노드로 이동
 
             if (currentNode.isWall) //다음 노드가 벽이면 종료
             {
@@ -548,33 +578,36 @@ public class BasicEnemy : MonoBehaviour
 
             if (currentNode == targetNode)
             {
+                currentNode.direction = Direction.RightUp;
                 AddOpenList(currentNode, startNode);
 
                 break;
             }
 
-            cornerCheakNode = curMapNodes[(y * mapSize.x) + x - 1];
+            cornerCheakNode = curMapNodes[(y * (mapSize.x + 1)) + x - 1];
 
             if (cornerCheakNode.isWall) // 코너 탐색 : 왼쪽이 막혀 있으면서 왼쪽 위가 막혀있지 않은 경우
             {
-                cornerCheakNode = curMapNodes[(y + 1) * mapSize.x + x - 1];
+                cornerCheakNode = curMapNodes[(y + 1) * (mapSize.x + 1) + x - 1];
 
                 if (cornerCheakNode.isWall == false) // 왼쪽 위가 안막힘
                 {
+                    currentNode.direction = Direction.RightUp;
                     AddOpenList(currentNode, startNode);
 
                     break;
                 }
             }
 
-            cornerCheakNode = curMapNodes[(y - 1) * mapSize.x + x];
+            cornerCheakNode = curMapNodes[(y - 1) * (mapSize.x + 1) + x];
 
             if (cornerCheakNode.isWall) // 코너 탐색 : 아래가 막혀 있으면서 오른쪽 아래가 막혀있지 않은 경우
             {
-                cornerCheakNode = curMapNodes[(y - 1) * mapSize.x + x + 1];
+                cornerCheakNode = curMapNodes[(y - 1) * (mapSize.x + 1) + x + 1];
 
                 if (cornerCheakNode.isWall == false) // 오른쪽 아래가 막혀 있지 않으면
                 {
+                    currentNode.direction = Direction.RightUp;
                     AddOpenList(currentNode, startNode);
 
                     break;
@@ -583,6 +616,7 @@ public class BasicEnemy : MonoBehaviour
 
             if (Right(currentNode, true) == true)
             {
+                currentNode.direction = Direction.RightUp;
                 AddOpenList(currentNode, startNode);
 
                 break;
@@ -590,6 +624,7 @@ public class BasicEnemy : MonoBehaviour
 
             if (Up(currentNode, true) == true)
             {
+                currentNode.direction = Direction.RightUp;
                 AddOpenList(currentNode, startNode);
 
                 break;
@@ -616,7 +651,7 @@ public class BasicEnemy : MonoBehaviour
         {
             currentNode.isWall = true;
 
-            currentNode = curMapNodes[(--y * mapSize.x) + ++x]; // 다음 노드로 이동
+            currentNode = curMapNodes[(--y * (mapSize.x + 1)) + ++x]; // 다음 노드로 이동
 
             if (currentNode.isWall)
             {
@@ -625,33 +660,36 @@ public class BasicEnemy : MonoBehaviour
 
             if (currentNode == targetNode)
             {
+                currentNode.direction = Direction.RightDown;
                 AddOpenList(currentNode, startNode);
 
                 break;
             }
 
-            cornerCheakNode = curMapNodes[(y * mapSize.x) + x - 1];
+            cornerCheakNode = curMapNodes[(y * (mapSize.x + 1)) + x - 1];
 
             if (cornerCheakNode.isWall) // 코너 탐색 : 왼쪽이 막혀있고 왼쪽 아래가 막혀 있지 않으면
             {
-                cornerCheakNode = curMapNodes[(y - 1) * mapSize.x + x - 1];
+                cornerCheakNode = curMapNodes[(y - 1) * (mapSize.x + 1) + x - 1];
 
                 if (cornerCheakNode.isWall == false) // 왼쪽 아래가 안막힘
                 {
+                    currentNode.direction = Direction.RightDown;
                     AddOpenList(currentNode, startNode);
 
                     break;
                 }
             }
 
-            cornerCheakNode = curMapNodes[(y + 1) * mapSize.x + x];
+            cornerCheakNode = curMapNodes[(y + 1) * (mapSize.x + 1) + x];
 
             if (cornerCheakNode.isWall) // 코너 탐색 : 위쪽이 막혀있고 오른쪽 위가 막혀있지 않으면
             {
-                cornerCheakNode = curMapNodes[(y + 1) * mapSize.x + x + 1];
+                cornerCheakNode = curMapNodes[(y + 1) * (mapSize.x + 1) + x + 1];
 
                 if (cornerCheakNode.isWall == false) // 오른쪽 위가 막혀있지 않으면
                 {
+                    currentNode.direction = Direction.RightDown;
                     AddOpenList(currentNode, startNode);
 
                     break;
@@ -660,6 +698,7 @@ public class BasicEnemy : MonoBehaviour
 
             if (Right(currentNode, true) == true)
             {
+                currentNode.direction = Direction.RightDown;
                 AddOpenList(currentNode, startNode);
 
                 break;
@@ -667,6 +706,7 @@ public class BasicEnemy : MonoBehaviour
 
             if (Down(currentNode, true) == true)
             {
+                currentNode.direction = Direction.RightDown;
                 AddOpenList(currentNode, startNode);
 
                 break;
@@ -693,7 +733,7 @@ public class BasicEnemy : MonoBehaviour
         {
             currentNode.isWall = true;
 
-            currentNode = curMapNodes[(++y * mapSize.x) + --x]; // 다음 노드로 이동
+            currentNode = curMapNodes[(++y * (mapSize.x + 1)) + --x]; // 다음 노드로 이동
 
             if (currentNode.isWall)
             {
@@ -702,33 +742,36 @@ public class BasicEnemy : MonoBehaviour
 
             if (currentNode == targetNode)
             {
+                currentNode.direction = Direction.LeftUp;
                 AddOpenList(currentNode, startNode);
 
                 break;
             }
 
-            cornerCheakNode = curMapNodes[(y * mapSize.x) + x + 1];
+            cornerCheakNode = curMapNodes[(y * (mapSize.x + 1)) + x + 1];
 
             if (cornerCheakNode.isWall) // 코너 탐색 : 오른쪽이 막혀있고 오른쪽 위가 막혀있지 않으면
             {
-                cornerCheakNode = curMapNodes[(y + 1) * mapSize.x + x + 1];
+                cornerCheakNode = curMapNodes[(y + 1) * (mapSize.x + 1) + x + 1];
 
                 if (cornerCheakNode.isWall == false) // 오른쪽 위가 안막힘
                 {
+                    currentNode.direction = Direction.LeftUp;
                     AddOpenList(currentNode, startNode);
 
                     break;
                 }
             }
 
-            cornerCheakNode = curMapNodes[(y - 1) * mapSize.x + x];
+            cornerCheakNode = curMapNodes[(y - 1) * (mapSize.x + 1) + x];
 
             if (cornerCheakNode.isWall) // 코너 탐색 : 아래가 막혀있고 왼쪽 아래가 막혀있지 않으면
             {
-                cornerCheakNode = curMapNodes[(y - 1) * mapSize.x + x - 1];
+                cornerCheakNode = curMapNodes[(y - 1) * (mapSize.x + 1) + x - 1];
 
                 if (cornerCheakNode.isWall == false) // 왼쪽 아래가 안막힘
                 {
+                    currentNode.direction = Direction.LeftUp;
                     AddOpenList(currentNode, startNode);
 
                     break; 
@@ -737,6 +780,7 @@ public class BasicEnemy : MonoBehaviour
 
             if (Left(currentNode, true) == true)
             {
+                currentNode.direction = Direction.LeftUp;
                 AddOpenList(currentNode, startNode);
 
                 break;
@@ -744,6 +788,7 @@ public class BasicEnemy : MonoBehaviour
 
             if (Up(currentNode, true) == true)
             {
+                currentNode.direction = Direction.LeftUp;
                 AddOpenList(currentNode, startNode);
 
                 break;
@@ -770,7 +815,7 @@ public class BasicEnemy : MonoBehaviour
         {
             currentNode.isWall = true;
 
-            currentNode = curMapNodes[(--y * mapSize.x) + --x]; // 다음 노드로 이동
+            currentNode = curMapNodes[(--y * (mapSize.x + 1)) + --x]; // 다음 노드로 이동
 
             if (currentNode.isWall)
             {
@@ -779,47 +824,51 @@ public class BasicEnemy : MonoBehaviour
 
             if (currentNode == targetNode)
             {
+                currentNode.direction = Direction.LeftDown;
                 AddOpenList(currentNode, startNode);
 
                 break;
             }
 
-            cornerCheakNode = curMapNodes[(y * mapSize.x) + x + 1];
+            cornerCheakNode = curMapNodes[(y * (mapSize.x + 1)) + x + 1];
 
             if (cornerCheakNode.isWall) // 코너 탐색 : 오른쪽이 막혀있고 오른쪽 아래가 막혀있지 않으면
             {
-                cornerCheakNode = curMapNodes[(y - 1) * mapSize.x + x + 1];
+                cornerCheakNode = curMapNodes[(y - 1) * (mapSize.x + 1) + x + 1];
 
                 if (cornerCheakNode.isWall == false) //오른쪽 아래가 안막힘
                 {
+                    currentNode.direction = Direction.LeftDown;
                     AddOpenList(currentNode, startNode);
 
                     break;
                 }
             }
 
-            cornerCheakNode = curMapNodes[(y + 1) * mapSize.x + x];
+            cornerCheakNode = curMapNodes[(y + 1) * (mapSize.x + 1) + x];
 
             if (cornerCheakNode.isWall) // 코너 탐색 : 위쪽이 막혀있고 왼쪽 위가 막혀있지 않으면
             {
-                cornerCheakNode = curMapNodes[(y + 1) * mapSize.x + x - 1];
+                cornerCheakNode = curMapNodes[(y + 1) * (mapSize.x + 1) + x - 1];
 
                 if (cornerCheakNode.isWall == false) // 왼쪽 위가 안막힘
                 {
+                    currentNode.direction = Direction.LeftDown;
                     AddOpenList(currentNode, startNode);
 
                     break; 
                 }
             }
 
-            cornerCheakNode = curMapNodes[(y + 1) * mapSize.x + x];
+            cornerCheakNode = curMapNodes[(y + 1) * (mapSize.x + 1) + x];
 
             if (cornerCheakNode.isWall) // 코너 탐색 : 위쪽이 막혀있고 왼쪽 위가 막혀있지 않으면
             {
-                cornerCheakNode = curMapNodes[(y + 1) * mapSize.x + x - 1];
+                cornerCheakNode = curMapNodes[(y + 1) * (mapSize.x + 1) + x - 1];
 
                 if (cornerCheakNode.isWall == false) // 왼쪽 위가 안막힘
                 {
+                    currentNode.direction = Direction.LeftDown;
                     AddOpenList(currentNode, startNode);
 
                     break; 
@@ -828,6 +877,7 @@ public class BasicEnemy : MonoBehaviour
 
             if (Left(currentNode, true) == true)
             {
+                currentNode.direction = Direction.LeftDown;
                 AddOpenList(currentNode, startNode);
 
                 break;
@@ -835,6 +885,7 @@ public class BasicEnemy : MonoBehaviour
 
             if (Down(currentNode, true) == true)
             {
+                currentNode.direction = Direction.LeftDown;
                 AddOpenList(currentNode, startNode);
 
                 break;
@@ -856,9 +907,9 @@ public class BasicEnemy : MonoBehaviour
 
         curMapNodes.Clear(); //현재 맵 노드 리스트 초기화(비우기)
 
-        for (int i = 0; i < mapSize.y; i++) //현재 맵의 세로 길이만큼 반복
+        for (int i = 0; i <= mapSize.y; i++) //현재 맵의 세로 길이만큼 반복
         {
-            for (int j = 0; j < mapSize.x; j++) //현재 맵의 가로 길이만큼 반복
+            for (int j = 0; j <= mapSize.x; j++) //현재 맵의 가로 길이만큼 반복
             {
                 isWall = false;
 
@@ -880,22 +931,21 @@ public class BasicEnemy : MonoBehaviour
             }
         }
 
-        StartCoroutine(PathFind());
+        PathFind();
     }
 
     /// <summary>
     /// 길 찾기 함수
     /// </summary>
     /// <returns></returns>
-    private IEnumerator PathFind()
+    private void PathFind()
     {
         Node currentNode;
 
         openList.Clear(); //오픈 리스트 초기화
-        finalNodeList.Clear(); //최종 경로 리스트 초기화
 
-        startNode = curMapNodes[(int)transform.position.y * mapSize.x + (int)transform.position.x]; //시작 노드 세팅(현재 맵 노드 리스트에서 포지션을 이용한 번호로 구함)
-        targetNode = curMapNodes[(int)playerComponent.moveTargetPos.y * mapSize.x + (int)playerComponent.moveTargetPos.x - 1]; //목표 노드 세팅(현재 맵 노드 리스트에서 포지션을 이용한 번호로 구함)
+        startNode = curMapNodes[(int)transform.position.y * (mapSize.x + 1) + (int)transform.position.x]; //시작 노드 세팅(현재 맵 노드 리스트에서 포지션을 이용한 번호로 구함)
+        targetNode = curMapNodes[(int)playerComponent.moveTargetPos.y * (mapSize.x + 1) + (int)playerComponent.moveTargetPos.x]; //목표 노드 세팅(현재 맵 노드 리스트에서 포지션을 이용한 번호로 구함)
 
         startNode.gCost = 0; //시작 노드의 이동 거리 데이터 초기화
         startNode.hCost = Heuristic(startNode.nodePos, targetNode.nodePos); //시작 노드의 휴리스틱 데이터 연산 후 추가
@@ -917,17 +967,25 @@ public class BasicEnemy : MonoBehaviour
 
             if (currentNode == targetNode) // 현재 노드가 끝 노드라면 부모 노드들 추적하여 움직임 시작
             {
-                while (currentNode.parentNode != null)
-                {
+                while (true)
+                { 
                     finalNodeList.Add(currentNode);
-                    currentNode = currentNode.parentNode;
+
+                    if (currentNode.parentNode == null)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        currentNode = currentNode.parentNode;
+                    }
                 }
 
                 finalNodeList.Reverse();
 
-                StartCoroutine(Move());
+                StartCoroutine(FinalNodeSetting());
 
-                yield break;
+                break;
             }
 
             if (currentNode.isWall == false)
@@ -951,6 +1009,177 @@ public class BasicEnemy : MonoBehaviour
 
             currentNode.isWall = true;    // 한번 간 노드 
         }
+    }
+
+    private IEnumerator FinalNodeSetting()
+    {    
+        Vector2 curDirection = Vector3.zero; //현재 경로 방향
+        Vector2 curPathPos; //현재 경로 위치
+        
+        bool isUpDownMove; //대각선 경로 설정에서 위, 아래 방향 노드 세팅할 차례인지 판별
+        bool isFindWall; //대각선 경로 설정에서 벽 판별
+
+        int curIndex = 0;
+
+        finalPathDatas.Clear(); //최종 경로 리스트 초기화
+
+        curPathPos = finalNodeList[0].nodePos;
+        curPathNodeData.pos = curPathPos;
+        finalPathDatas.Add(curPathNodeData);
+
+        while (curIndex < finalNodeList.Count - 1) //최종 노드까지 반복
+        {
+            if (finalNodeList[curIndex + 1].direction == Direction.Left || finalNodeList[curIndex + 1].direction == Direction.Right || finalNodeList[curIndex + 1].direction == Direction.Down
+                || finalNodeList[curIndex + 1].direction == Direction.Up)
+            {
+                switch (finalNodeList[curIndex + 1].direction)
+                {
+                    case Direction.Left:
+                        curDirection = Vector2.left;
+                        break;
+                    case Direction.Right:
+                        curDirection = Vector2.right;
+                        break;
+                    case Direction.Down:
+                        curDirection = Vector2.down;
+                        break;
+                    case Direction.Up:
+                        curDirection = Vector2.up;
+                        break;
+                }
+
+                while (curPathPos != finalNodeList[curIndex + 1].nodePos)
+                {
+                    curPathPos += curDirection;
+
+                    curPathNodeData.pos = curPathPos;
+                    curPathNodeData.direction = curDirection;
+                    finalPathDatas.Add(curPathNodeData);
+                }
+            }
+            else
+            {
+                isUpDownMove = false;
+
+                while (curPathPos != finalNodeList[curIndex + 1].nodePos)
+                {
+                    isFindWall = false;
+
+                    switch (finalNodeList[curIndex + 1].direction)
+                    {
+                        case Direction.LeftUp:
+                            curDirection = Vector2.left;
+                            break;
+                        case Direction.LeftDown:
+                            curDirection = Vector2.left;
+                            break;
+                        case Direction.RightUp:
+                            curDirection = Vector2.right;
+                            break;
+                        case Direction.RightDown:
+                            curDirection = Vector2.right;
+                            break;
+                    }
+
+                    if (isUpDownMove)
+                    {
+                        if (((finalNodeList[curIndex + 1].direction == Direction.LeftUp || finalNodeList[curIndex + 1].direction == Direction.RightUp) && curMapNodes[((int)curPathPos.y + 1) * (mapSize.x + 1) + (int)curPathPos.x].isWall)
+                             || (finalNodeList[curIndex + 1].direction == Direction.LeftDown || finalNodeList[curIndex + 1].direction == Direction.RightDown) && curMapNodes[((int)curPathPos.y - 1) * (mapSize.x + 1) + (int)curPathPos.x].isWall)
+                        {
+                            isFindWall = true;
+                        }
+
+                        if (isFindWall || curPathPos.y == finalNodeList[curIndex + 1].nodePos.y)
+                        {
+                            curPathPos += curDirection;
+                        }
+                        else
+                        {
+                            if (finalNodeList[curIndex + 1].direction == Direction.LeftUp || finalNodeList[curIndex + 1].direction == Direction.RightUp)
+                            {
+                                curDirection = Vector2.up;
+                                curPathPos += Vector2.up;
+                            }
+                            else
+                            {
+                                curDirection = Vector2.down;
+                                curPathPos += Vector2.down;
+                            }
+                        }
+                    }
+                    else if(isUpDownMove == false)
+                    {
+                        if (((finalNodeList[curIndex + 1].direction == Direction.LeftUp || finalNodeList[curIndex + 1].direction == Direction.LeftDown) && curMapNodes[(int)curPathPos.y * (mapSize.x + 1) + (int)curPathPos.x - 1].isWall)
+                             || (finalNodeList[curIndex + 1].direction == Direction.RightUp || finalNodeList[curIndex + 1].direction == Direction.RightDown) && curMapNodes[(int)curPathPos.y * (mapSize.x + 1) + (int)curPathPos.x + 1].isWall)
+                        {
+                            isFindWall = true;
+                        }
+
+                        if (isFindWall || curPathPos.x == finalNodeList[curIndex + 1].nodePos.x)
+                        {
+                            if (finalNodeList[curIndex + 1].direction == Direction.LeftUp || finalNodeList[curIndex + 1].direction == Direction.RightUp)
+                            {
+                                curDirection = Vector2.up;
+                                curPathPos += Vector2.up;
+                            }
+                            else
+                            {
+                                curDirection = Vector2.down;
+                                curPathPos += Vector2.down;
+                            }
+                        }
+                        else
+                        {
+                            curPathPos += curDirection;
+                        }
+                    }
+
+                    isUpDownMove = (isUpDownMove == false) ? true : false;
+
+                    curPathNodeData.pos = curPathPos;
+                    curPathNodeData.direction = curDirection;
+                    finalPathDatas.Add(curPathNodeData);
+                }
+            }
+
+            curIndex++;
+
+            yield return null;
+        }
+
+        StartCoroutine(Move());
+    }
+
+    /// <summary>
+    /// 움직임 함수
+    /// </summary>
+    public IEnumerator Move()
+    {
+        for (int nowIndex = 0; nowIndex < finalPathDatas.Count - 1; nowIndex++)
+        {
+            while ((finalPathDatas[nowIndex + 1].direction == Vector2.left && transform.position.x > finalPathDatas[nowIndex + 1].pos.x) ||
+                (finalPathDatas[nowIndex + 1].direction == Vector2.right && transform.position.x < finalPathDatas[nowIndex + 1].pos.x) ||
+                (finalPathDatas[nowIndex + 1].direction == Vector2.up && transform.position.y < finalPathDatas[nowIndex + 1].pos.y) ||
+                (finalPathDatas[nowIndex + 1].direction == Vector2.down && transform.position.y > finalPathDatas[nowIndex + 1].pos.y))
+            {
+                transform.Translate(finalPathDatas[nowIndex + 1].direction * Time.deltaTime * enemyData.Speed);
+
+                yield return null;
+            }
+
+
+            //if (playerComponent.moveTargetPos != finalNodeList[finalNodeList.Count - 1].nodePos)
+            //{
+            //    MapSetting();
+            //    //Test();
+
+            //    break;
+            //}
+
+            yield return null;
+        }
+
+        transform.position = finalPathDatas[finalPathDatas.Count - 1].pos;
     }
 
     //private void Test()
@@ -1003,47 +1232,6 @@ public class BasicEnemy : MonoBehaviour
         _currentNode.hCost = Heuristic(_currentNode.nodePos, targetNode.nodePos);
 
         openList.Add(_currentNode);
-    }
-
-    /// <summary>
-    /// 움직임 함수
-    /// </summary>
-    public IEnumerator Move()
-    {
-        Vector2 curTargetPos;
-        Vector3 targetPos = Vector3.zero;
-
-        targetPos.x = targetNode.nodePos.x;
-        targetPos.y = targetNode.nodePos.y;
-        
-        for (int nowIndex = 0; nowIndex < finalNodeList.Count; nowIndex++)
-        {
-            curTargetPos.x = finalNodeList[nowIndex].nodePos.x;
-            curTargetPos.y = finalNodeList[nowIndex].nodePos.y;
-
-            while (true)
-            {
-                transform.Translate(Vector3.right * Time.deltaTime * enemyData.Speed);
-                
-                yield return null;
-            }
-
-
-            //while (transform.position.x != curTargetPos.x && transform.position.y != curTargetPos.y)
-            //{
-            //    transform.position = Vector3.MoveTowards(transform.position, curTargetPos, Time.deltaTime * enemyData.Speed);
-
-            //    yield return null;
-            //}
-
-            //if (playerComponent.moveTargetPos != targetPos)
-            //{
-            //    MapSetting();
-            //    //Test();
-
-            //    break;
-            //}
-        }
     }
 
     private void OnDrawGizmos()

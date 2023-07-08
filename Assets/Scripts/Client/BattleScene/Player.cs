@@ -32,9 +32,8 @@ public class Player : MonoBehaviour
     [Tooltip("현재 이동 경로에 벽이 있는지 판별")]
     private bool isWallInPath;
 
-    //[HideInInspector]
     [Tooltip("이동시 미리 도달할 기준 좌표")]
-    public Vector3 moveTargetPos;
+    public Vector2 moveTargetPos;
 
     [Tooltip("이동 연산에 사용될 Vector")]
     private Vector3 moveVector;
@@ -59,7 +58,6 @@ public class Player : MonoBehaviour
     {
         for (int i = 0; i < rangeInEnemy.Count; i++)
         {
-            print("실행");
             rangeInEnemy[i].GetComponent<BasicEnemy>().Hit(1);
         }
     }

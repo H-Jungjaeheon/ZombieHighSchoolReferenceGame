@@ -15,5 +15,5 @@ MonoBehaviour:
   enemyName: BandagedPatient
   maxHp: 6
   sightRange: 4
-  speed: 1.5
+  speed: 5
   score: 100
