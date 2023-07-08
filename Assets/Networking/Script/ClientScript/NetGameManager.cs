@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,9 +8,11 @@ public class NetGameManager : MonoBehaviour
     public static NetGameManager Instance;
 
     public static Dictionary<int, PlayerManager> Players = new Dictionary<int, PlayerManager>();
+    public static Dictionary<int, ItemSpawner> ItemSpawners = new Dictionary<int, ItemSpawner>();
 
     public GameObject LocalPlayerPrefab;
     public GameObject PlayerPrefab;
+    public GameObject ItemSpawnerPrefab;
 
     private void Awake()
     {
@@ -42,5 +45,12 @@ public class NetGameManager : MonoBehaviour
 
         _Player.GetComponent<PlayerManager>().Initialize(_Id, _UserName);
         Players.Add(_Id, _Player.GetComponent<PlayerManager>());
+    }
+
+    public void CreateItemSpawner(int _SpawnerId, Vector3 _Position, bool _HasItem)
+    {
+        GameObject _Spawner = Instantiate(ItemSpawnerPrefab, _Position, ItemSpawnerPrefab.transform.rotation);
+        _Spawner.GetComponent<ItemSpawner>().Initialize(_SpawnerId, _HasItem);
+        ItemSpawners.Add(_SpawnerId, _Spawner.GetComponent<ItemSpawner>());
     }
 }

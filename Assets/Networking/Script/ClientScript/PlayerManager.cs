@@ -11,6 +11,9 @@ public class PlayerManager : MonoBehaviour
     public float Health;
     public float MaxHealth;
 
+    public int ItemCount = 0;
+
+
     public void Initialize(int _Id, string _UserName)
     {
         Id = _Id;

@@ -635,10 +635,10 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: 8a2b9e2a607dd2143b58c44bc32410b4, type: 3}
-    m_FontSize: 70
+    m_FontSize: 65
     m_FontStyle: 1
     m_BestFit: 0
-    m_MinSize: 7
+    m_MinSize: 0
     m_MaxSize: 86
     m_Alignment: 4
     m_AlignByGeometry: 0
@@ -686,6 +686,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   LocalPlayerPrefab: {fileID: 7276606108964804648, guid: c1c149b1467309345a7aabfa1e151683, type: 3}
   PlayerPrefab: {fileID: 6729924202382779979, guid: e457e93c66cda79429ec7455c66cbc61, type: 3}
+  ItemSpawnerPrefab: {fileID: 5332287329159210138, guid: e5efbccdcc495e7428b268bf96dae7ad, type: 3}
 --- !u!4 &1170573067
 Transform:
   m_ObjectHideFlags: 0

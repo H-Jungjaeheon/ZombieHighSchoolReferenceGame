@@ -15,6 +15,9 @@ namespace GameServer
         playerDisconnected,
         playerHealth,
         playerRespawned,
+        createItemSpawner,
+        itemSpawnd,
+        itemPickedUp,
     }
 
     /// <summary>클라이언트에서 서버로 전송한다.</summary>
