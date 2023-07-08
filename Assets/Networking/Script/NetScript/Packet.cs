@@ -11,7 +11,16 @@ namespace GameServer
         welcome = 1,
         spawnPlayer,
         playerPosition,
-        playerRotation
+        playerRotation,
+        playerDisconnected,
+        playerHealth,
+        playerRespawned,
+        createItemSpawner,
+        itemSpawnd,
+        itemPickedUp,
+        spawnProjectile,
+        projectilePosition,
+        projectileExploded,
     }
 
     /// <summary>클라이언트에서 서버로 전송한다.</summary>
@@ -19,6 +28,8 @@ namespace GameServer
     {
         welcomeReceived = 1,
         playerMovement,
+        playerShoot,
+        playerThrowItem,
     }
 
     public class Packet : IDisposable
