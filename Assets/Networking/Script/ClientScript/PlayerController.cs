@@ -11,7 +11,8 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.UpArrow))
+        #region Shoot
+        if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             ClientSend.PlayerShoot(Vector3.up);
         }
@@ -27,6 +28,15 @@ public class PlayerController : MonoBehaviour
         {
             ClientSend.PlayerShoot(Vector3.left);
         }
+        #endregion
+
+        #region Throw
+        if (Input.GetKeyDown(KeyCode.Mouse1))
+        {
+            Debug.Log("Throw Start");
+            ClientSend.PlayerThrowItem(Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0)));
+        }
+        #endregion
     }
 
     private void SendInputToServer()

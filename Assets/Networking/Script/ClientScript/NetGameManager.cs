@@ -9,10 +9,12 @@ public class NetGameManager : MonoBehaviour
 
     public static Dictionary<int, PlayerManager> Players = new Dictionary<int, PlayerManager>();
     public static Dictionary<int, ItemSpawner> ItemSpawners = new Dictionary<int, ItemSpawner>();
+    public static Dictionary<int, ProjectileManager> Projectiles = new Dictionary<int, ProjectileManager>();
 
     public GameObject LocalPlayerPrefab;
     public GameObject PlayerPrefab;
     public GameObject ItemSpawnerPrefab;
+    public GameObject ProjectilePrefab;
 
     private void Awake()
     {
@@ -52,5 +54,12 @@ public class NetGameManager : MonoBehaviour
         GameObject _Spawner = Instantiate(ItemSpawnerPrefab, _Position, ItemSpawnerPrefab.transform.rotation);
         _Spawner.GetComponent<ItemSpawner>().Initialize(_SpawnerId, _HasItem);
         ItemSpawners.Add(_SpawnerId, _Spawner.GetComponent<ItemSpawner>());
+    }
+
+    public void SpawnProjectile(int _Id, Vector3 _Position)
+    {
+        GameObject _Projectile = Instantiate(ProjectilePrefab, _Position, Quaternion.identity);
+        _Projectile.GetComponent<ProjectileManager>().Initialize(_Id);
+        Projectiles.Add(_Id, _Projectile.GetComponent<ProjectileManager>());
     }
 }

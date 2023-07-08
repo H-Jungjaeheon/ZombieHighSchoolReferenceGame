@@ -2,6 +2,7 @@ using GameServer;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class ClientSend : MonoBehaviour
 {
@@ -47,6 +48,16 @@ public class ClientSend : MonoBehaviour
     public static void PlayerShoot(Vector3 _Facing)
     {
         using (Packet _Packet = new Packet((int)ClientPackets.playerShoot))
+        {
+            _Packet.Write(_Facing);
+
+            SendTcpData(_Packet);
+        }
+    }
+
+    public static void PlayerThrowItem(Vector3 _Facing)
+    {
+        using (Packet _Packet = new Packet((int)ClientPackets.playerThrowItem))
         {
             _Packet.Write(_Facing);
 

@@ -91,4 +91,32 @@ public class ClientHandle : MonoBehaviour
         NetGameManager.ItemSpawners[_SpawnerId].ItemPickedUp();
         NetGameManager.Players[_ByPlayer].ItemCount++;
     }
+
+    public static void SpawnProjectile(Packet _Packet)
+    {
+        Debug.Log("SpawnProjectile");
+
+        int _ProjectileId = _Packet.ReadInt();
+        Vector3 _Position = _Packet.ReadVector3();
+        int _ThrowByPlayer = _Packet.ReadInt();
+
+        NetGameManager.Instance.SpawnProjectile(_ProjectileId, _Position);
+        NetGameManager.Players[_ThrowByPlayer].ItemCount--;
+    }
+
+    public static void ProjectilePosition(Packet _Packet)
+    {
+        int _ProjectileId = _Packet.ReadInt();
+        Vector3 _Position = _Packet.ReadVector3();
+
+        NetGameManager.Projectiles[_ProjectileId].transform.position = _Position;
+    }
+
+    public static void ProjectileExploded(Packet _Packet)
+    {
+        int _ProjectileId = _Packet.ReadInt();
+        Vector3 _Position = _Packet.ReadVector3();
+
+        NetGameManager.Projectiles[_ProjectileId].Explode(_Position);
+    }
 }
