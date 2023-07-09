@@ -2,48 +2,84 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.SceneManagement;
 
 public class ShowManager : MonoBehaviour
 {
-    public List<Vector3> CameraPoint = new List<Vector3>();
+    [Header("ServerState")]
+    public static bool ServerStart = false;
+    public bool BloomOut = false;
 
+    [Header("Camera")]
+    public List<Vector3> CameraPoint = new List<Vector3>();
+    public float CameraSize = 10.0f;
+    public float CameraMoveSpeed = 5.0f;
+
+    [Header("Move Point")]
     public Vector3 GirlEndPoint;
     public Vector3 StudentEndPoint;
+    public Vector3 GirlStartPoint;
+    public Vector3 StudentStartPoint;
 
+    [Header("Player Attribute")]
     public float GirlSpeed;
     public float StudentSpeed;
 
+    [Header("Player")]
     public GameObject Girl;
     public GameObject Student;
 
+    [Header("Speech Sleep")]
     public GameObject GirlSpeech;
     public GameObject StudentSpeech;
 
+    [Header("Speech Wow")]
+    public GameObject GirlSpeechWow;
+    public GameObject StudentSpeechWow;
+
+    [Header("Animator")]
     public Animator GirlAnimator;
     public Animator StudentAnimator;
 
+    [Header("Postprocess")]
     public float MaxIntensity;
+    public float MinIntensity;
     public float IntensityForce;
     public PostProcessVolume Volume;
     public Bloom Bloom;
+    public Vignette Vignette;
 
 
     public void Start()
     {
         Camera.main.transform.position = CameraPoint[GameObject.FindObjectOfType<Player>().MyType - 1];
-
-        StartCoroutine(GirlAnimation());
-        StartCoroutine(StudentAnimation());
-
         Volume.profile.TryGetSettings(out Bloom);
+        Volume.profile.TryGetSettings(out Vignette);
+
+        if (ServerStart == false)
+        {
+            StartCoroutine(StartGirlAnimation());
+            StartCoroutine(StartStudentAnimation());
+
+            ServerStart = true;
+        }
+
+        else
+        {
+            StartCoroutine(EndGirlAnimation());
+            StartCoroutine(EndStudentAnimation());
+
+            ServerStart = false;
+        }
     }
 
-    public IEnumerator GirlAnimation()
+    public IEnumerator StartGirlAnimation()
     {
+        GirlRightIdle();
+
         yield return new WaitForSeconds(2.5f);
 
-        GirlAnimator.SetBool("RightWalk", true);
-        GirlAnimator.SetBool("RightIdle", false);
+        GirlRightWalk();
 
         while (Girl.transform.position.x != GirlEndPoint.x)
         {
@@ -51,8 +87,7 @@ public class ShowManager : MonoBehaviour
             Girl.transform.position = Vector3.MoveTowards(Girl.transform.position, GirlEndPoint, GirlSpeed * Time.deltaTime);
         }
 
-        GirlAnimator.SetBool("RightWalk", false);
-        GirlAnimator.SetBool("RightIdle", false);
+        GirlBackIdle();
 
         yield return new WaitForSeconds(1f);
         Girl.gameObject.SetActive(false);
@@ -63,12 +98,13 @@ public class ShowManager : MonoBehaviour
         yield break;
     }
 
-    public IEnumerator StudentAnimation()
+    public IEnumerator StartStudentAnimation()
     {
+        StudentRightIdle();
+
         yield return new WaitForSeconds(2.5f);
 
-        StudentAnimator.SetBool("RightWalk", true);
-        StudentAnimator.SetBool("RightIdle", false);
+        StudentRightWalk();
 
         while (Student.transform.position.x != StudentEndPoint.x)
         {
@@ -76,22 +112,243 @@ public class ShowManager : MonoBehaviour
             Student.transform.position = Vector3.MoveTowards(Student.transform.position, StudentEndPoint, StudentSpeed * Time.deltaTime);
         }
 
-        StudentAnimator.SetBool("RightWalk", false);
-        StudentAnimator.SetBool("RightIdle", false);
+        StudentBackIdle();
 
         yield return new WaitForSeconds(1f);
         Student.gameObject.SetActive(false);
         yield return new WaitForSeconds(0.3f);
 
         StudentSpeech.SetActive(true);
-
         yield return new WaitForSeconds(1.0f);
+
+        while(Camera.main.transform.position.y != CameraPoint[2].y && Camera.main.orthographicSize < CameraSize)
+        {
+            yield return null;
+
+            Camera.main.transform.position = Vector3.MoveTowards(Camera.main.transform.position, CameraPoint[2], CameraMoveSpeed * Time.deltaTime);
+            if(Camera.main.orthographicSize < CameraSize)
+            {
+                Camera.main.orthographicSize += CameraMoveSpeed * Time.deltaTime;
+            }
+        }
+        yield return new WaitForSeconds(1.3f);
+
         while (Bloom.intensity.value <= MaxIntensity)
         {
             yield return null;
             Bloom.intensity.value += IntensityForce * Time.deltaTime;
         }
 
+        //TODO: Fix
+        SceneManager.LoadScene("EndShowScene");
         yield break;
     }
+
+    public IEnumerator EndGirlAnimation()
+    {
+        Girl.SetActive(true);
+
+        while(BloomOut == false)
+        {
+            yield return null;
+        }
+
+        GirlRightIdle();
+        yield return new WaitForSeconds(0.5f);
+        GirlLeftIdle();
+        yield return new WaitForSeconds(0.5f);
+        GirlRightIdle();
+        yield return new WaitForSeconds(0.5f);
+        GirlFrontIdle();
+        yield return new WaitForSeconds(0.5f);
+        GirlSpeechWow.SetActive(true);
+        yield return new WaitForSeconds(0.7f);
+        GirlSpeechWow.SetActive(false);
+        GirlLeftWalk();
+
+        while (Girl.transform.position.x != GirlStartPoint.x)
+        {
+            yield return null;
+            Girl.transform.position = Vector3.MoveTowards(Girl.transform.position, GirlStartPoint, GirlSpeed * Time.deltaTime);
+        }
+
+        GirlBackIdle();
+
+        yield return new WaitForSeconds(0.8f);
+
+        Girl.gameObject.SetActive(false);
+
+        yield break;
+    }
+
+    public IEnumerator EndStudentAnimation()
+    {
+        Student.SetActive(true);
+
+        yield return new WaitForSeconds(1.0f);
+        while (Bloom.intensity.value >= MinIntensity)
+        {
+            yield return null;
+            Bloom.intensity.value -= IntensityForce * Time.deltaTime;
+        }
+
+        BloomOut = true;
+
+        StudentRightIdle();
+        yield return new WaitForSeconds(0.5f);
+        StudentLeftIdle();
+        yield return new WaitForSeconds(0.5f);
+        StudentRightIdle();
+        yield return new WaitForSeconds(0.5f);
+        StudentFrontIdle();
+        yield return new WaitForSeconds(0.5f);
+        StudentSpeechWow.SetActive(true);
+        yield return new WaitForSeconds(0.7f);
+        StudentSpeechWow.SetActive(false);
+        StudentLeftWalk();
+
+        while (Student.transform.position.x != StudentStartPoint.x)
+        {
+            yield return null;
+            Student.transform.position = Vector3.MoveTowards(Student.transform.position, StudentStartPoint, StudentSpeed * Time.deltaTime);
+        }
+
+        StudentBackIdle();
+
+        yield return new WaitForSeconds(0.8f);
+
+        Student.gameObject.SetActive(false);
+
+        yield return new WaitForSeconds(0.8f);
+
+        UIManager.Instance.FadeImage.gameObject.SetActive(true);
+        UIManager.Instance.FadeState = Fade.In;
+        yield return new WaitForSeconds(2.5f);
+
+        yield break;
+    }
+
+    #region GirlAnimator
+    private void GirlFrontIdle()
+    {
+        GirlAnimator.SetBool("RightIdle", false);
+        GirlAnimator.SetBool("RightWalk", false);
+        GirlAnimator.SetBool("LeftIdle", false);
+        GirlAnimator.SetBool("LeftWalk", false);
+        GirlAnimator.SetBool("FrontIdle", true);
+        GirlAnimator.SetBool("BackIdle", false);
+    }
+
+    private void GirlBackIdle()
+    {
+        GirlAnimator.SetBool("RightIdle", false);
+        GirlAnimator.SetBool("RightWalk", false);
+        GirlAnimator.SetBool("LeftIdle", false);
+        GirlAnimator.SetBool("LeftWalk", false);
+        GirlAnimator.SetBool("FrontIdle", false);
+        GirlAnimator.SetBool("BackIdle", true);
+    }
+
+    private void GirlLeftIdle()
+    {
+        GirlAnimator.SetBool("RightIdle", false);
+        GirlAnimator.SetBool("RightWalk", false);
+        GirlAnimator.SetBool("LeftIdle", true);
+        GirlAnimator.SetBool("LeftWalk", false);
+        GirlAnimator.SetBool("FrontIdle", false);
+        GirlAnimator.SetBool("BackIdle", false);
+    }
+
+    private void GirlRightIdle()
+    {
+        GirlAnimator.SetBool("RightIdle", true);
+        GirlAnimator.SetBool("RightWalk", false);
+        GirlAnimator.SetBool("LeftIdle", false);
+        GirlAnimator.SetBool("LeftWalk", false);
+        GirlAnimator.SetBool("FrontIdle", false);
+        GirlAnimator.SetBool("BackIdle", false);
+    }
+
+    private void GirlLeftWalk()
+    {
+        GirlAnimator.SetBool("RightIdle", false);
+        GirlAnimator.SetBool("RightWalk", false);
+        GirlAnimator.SetBool("LeftIdle", false);
+        GirlAnimator.SetBool("LeftWalk", true);
+        GirlAnimator.SetBool("FrontIdle", false);
+        GirlAnimator.SetBool("BackIdle", false);
+    }
+
+    private void GirlRightWalk()
+    {
+        GirlAnimator.SetBool("RightIdle", false);
+        GirlAnimator.SetBool("RightWalk", true);
+        GirlAnimator.SetBool("LeftIdle", false);
+        GirlAnimator.SetBool("LeftWalk", false);
+        GirlAnimator.SetBool("FrontIdle", false);
+        GirlAnimator.SetBool("BackIdle", false);
+    }
+    #endregion
+
+    #region StudentAnimator
+    private void StudentFrontIdle()
+    {
+        StudentAnimator.SetBool("RightIdle", false);
+        StudentAnimator.SetBool("RightWalk", false);
+        StudentAnimator.SetBool("LeftIdle", false);
+        StudentAnimator.SetBool("LeftWalk", false);
+        StudentAnimator.SetBool("FrontIdle", true);
+        StudentAnimator.SetBool("BackIdle", false);
+    }
+
+    private void StudentBackIdle()
+    {
+        StudentAnimator.SetBool("RightIdle", false);
+        StudentAnimator.SetBool("RightWalk", false);
+        StudentAnimator.SetBool("LeftIdle", false);
+        StudentAnimator.SetBool("LeftWalk", false);
+        StudentAnimator.SetBool("FrontIdle", false);
+        StudentAnimator.SetBool("BackIdle", true);
+    }
+
+    private void StudentLeftIdle()
+    {
+        StudentAnimator.SetBool("RightIdle", false);
+        StudentAnimator.SetBool("RightWalk", false);
+        StudentAnimator.SetBool("LeftIdle", true);
+        StudentAnimator.SetBool("LeftWalk", false);
+        StudentAnimator.SetBool("FrontIdle", false);
+        StudentAnimator.SetBool("BackIdle", false);
+    }
+
+    private void StudentRightIdle()
+    {
+        StudentAnimator.SetBool("RightIdle", true);
+        StudentAnimator.SetBool("RightWalk", false);
+        StudentAnimator.SetBool("LeftIdle", false);
+        StudentAnimator.SetBool("LeftWalk", false);
+        StudentAnimator.SetBool("FrontIdle", false);
+        StudentAnimator.SetBool("BackIdle", false);
+    }
+
+    private void StudentLeftWalk()
+    {
+        StudentAnimator.SetBool("RightIdle", false);
+        StudentAnimator.SetBool("RightWalk", false);
+        StudentAnimator.SetBool("LeftIdle", false);
+        StudentAnimator.SetBool("LeftWalk", true);
+        StudentAnimator.SetBool("FrontIdle", false);
+        StudentAnimator.SetBool("BackIdle", false);
+    }
+
+    private void StudentRightWalk()
+    {
+        StudentAnimator.SetBool("RightIdle", false);
+        StudentAnimator.SetBool("RightWalk", true);
+        StudentAnimator.SetBool("LeftIdle", false);
+        StudentAnimator.SetBool("LeftWalk", false);
+        StudentAnimator.SetBool("FrontIdle", false);
+        StudentAnimator.SetBool("BackIdle", false);
+    }
+    #endregion
 }

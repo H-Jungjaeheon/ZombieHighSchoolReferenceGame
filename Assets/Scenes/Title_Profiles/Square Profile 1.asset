@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8e6292b2c06870d4495f009f912b9600, type: 3}
-  m_Name: Square Profile
+  m_Name: Square Profile 1
   m_EditorClassIdentifier: 
   settings:
-  - {fileID: 2048257253485884231}
-  - {fileID: 414391731460428714}
---- !u!114 &414391731460428714
+  - {fileID: 2310747421304653929}
+  - {fileID: 680392156464653458}
+--- !u!114 &680392156464653458
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -33,7 +33,7 @@ MonoBehaviour:
     value: 1
   intensity:
     overrideState: 1
-    value: 0
+    value: 90
   threshold:
     overrideState: 1
     value: 1
@@ -62,7 +62,7 @@ MonoBehaviour:
   dirtIntensity:
     overrideState: 0
     value: 0
---- !u!114 &2048257253485884231
+--- !u!114 &2310747421304653929
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -89,7 +89,7 @@ MonoBehaviour:
     value: {x: 0.5, y: 0.5}
   intensity:
     overrideState: 1
-    value: 0.332
+    value: 0
   smoothness:
     overrideState: 1
     value: 1
