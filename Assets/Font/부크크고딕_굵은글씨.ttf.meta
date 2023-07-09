@@ -1,0 +1,22 @@
+fileFormatVersion: 2
+guid: 9fb47b20a85a7b94ca0c6bb88c8e7898
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontNames:
+  - Bookk Gothic
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: e1fd656555c185140ad7192818832db7, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

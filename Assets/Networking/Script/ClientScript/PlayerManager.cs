@@ -6,6 +6,8 @@ public class PlayerManager : MonoBehaviour
 {
     public int Id;
     public string UserName;
+    public int Type;
+
     public SpriteRenderer Renderer;
 
     public float Health;

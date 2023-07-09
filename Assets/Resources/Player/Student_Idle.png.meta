@@ -1,0 +1,792 @@
+fileFormatVersion: 2
+guid: 71242ae1132a9ec48aaa76dd77d7886f
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 5000417376847400157
+    second: Student_Idle_0
+  - first:
+      213: -6539540902085631567
+    second: Student_Idle_1
+  - first:
+      213: 3205253181795178103
+    second: Student_Idle_2
+  - first:
+      213: -7537409731612729066
+    second: Student_Idle_3
+  - first:
+      213: -8764598066317099981
+    second: Student_Idle_4
+  - first:
+      213: -4478365715641062113
+    second: Student_Idle_5
+  - first:
+      213: -6686454241008496216
+    second: Student_Idle_6
+  - first:
+      213: 4980427037376486204
+    second: Student_Idle_7
+  - first:
+      213: -1365498225166469859
+    second: Student_Idle_8
+  - first:
+      213: 2557764562618254622
+    second: Student_Idle_9
+  - first:
+      213: -3184439156222546363
+    second: Student_Idle_10
+  - first:
+      213: 1050802869350450709
+    second: Student_Idle_11
+  - first:
+      213: -87711338861385644
+    second: Student_Idle_12
+  - first:
+      213: -2143035122640309325
+    second: Student_Idle_13
+  - first:
+      213: -6717476923587256309
+    second: Student_Idle_14
+  - first:
+      213: -779880427113235904
+    second: Student_Idle_15
+  - first:
+      213: 8618924326948952494
+    second: Student_Idle_16
+  - first:
+      213: 8654844598268324465
+    second: Student_Idle_17
+  - first:
+      213: 1251658897984723451
+    second: Student_Idle_18
+  - first:
+      213: 187306653685775051
+    second: Student_Idle_19
+  - first:
+      213: -5311691812980900982
+    second: Student_Idle_20
+  - first:
+      213: -2203980757777052820
+    second: Student_Idle_21
+  - first:
+      213: -5642674323736583173
+    second: Student_Idle_22
+  - first:
+      213: -572992832397975904
+    second: Student_Idle_23
+  - first:
+      213: -5168974280039713646
+    second: Student_Idle_24
+  - first:
+      213: 7893493302275535633
+    second: Student_Idle_25
+  - first:
+      213: 4405258595085986004
+    second: Student_Idle_26
+  - first:
+      213: 8426058742410012197
+    second: Student_Idle_27
+  externalObjects: {}
+  serializedVersion: 11
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Student_Idle_0
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 548
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ddc0ea36c1d056540800000000000000
+      internalID: 5000417376847400157
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_1
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 548
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1b16c019232ee35a0800000000000000
+      internalID: -6539540902085631567
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_2
+      rect:
+        serializedVersion: 2
+        x: 188
+        y: 548
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 776971469c85b7c20800000000000000
+      internalID: 3205253181795178103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_3
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 548
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 611a6a4b8cdb56790800000000000000
+      internalID: -7537409731612729066
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_4
+      rect:
+        serializedVersion: 2
+        x: 364
+        y: 548
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 33cf71ade74ed5680800000000000000
+      internalID: -8764598066317099981
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_5
+      rect:
+        serializedVersion: 2
+        x: 452
+        y: 548
+        width: 68
+        height: 156
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f1d2de8eb16a9d1c0800000000000000
+      internalID: -4478365715641062113
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_6
+      rect:
+        serializedVersion: 2
+        x: 540
+        y: 548
+        width: 68
+        height: 160
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8a1d8cd4b41f433a0800000000000000
+      internalID: -6686454241008496216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_7
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 368
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c3b9398c0080e1540800000000000000
+      internalID: 4980427037376486204
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_8
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 368
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d15b6835996cc0de0800000000000000
+      internalID: -1365498225166469859
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_9
+      rect:
+        serializedVersion: 2
+        x: 184
+        y: 368
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e1581fd61510f7320800000000000000
+      internalID: 2557764562618254622
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_10
+      rect:
+        serializedVersion: 2
+        x: 272
+        y: 368
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 54ea28495799ec3d0800000000000000
+      internalID: -3184439156222546363
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_11
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 368
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 516489c64a3359e00800000000000000
+      internalID: 1050802869350450709
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_12
+      rect:
+        serializedVersion: 2
+        x: 448
+        y: 368
+        width: 68
+        height: 156
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 458a464800368cef0800000000000000
+      internalID: -87711338861385644
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_13
+      rect:
+        serializedVersion: 2
+        x: 536
+        y: 368
+        width: 68
+        height: 160
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3b3b6d509e86242e0800000000000000
+      internalID: -2143035122640309325
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_14
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 188
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b00a2b6245ab6c2a0800000000000000
+      internalID: -6717476923587256309
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_15
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 188
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 04ab2ae22ee4d25f0800000000000000
+      internalID: -779880427113235904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_16
+      rect:
+        serializedVersion: 2
+        x: 188
+        y: 188
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ea9d3c5a2029c9770800000000000000
+      internalID: 8618924326948952494
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_17
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 188
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 17aedf98e4f2c1870800000000000000
+      internalID: 8654844598268324465
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_18
+      rect:
+        serializedVersion: 2
+        x: 364
+        y: 188
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bf9165ad229ce5110800000000000000
+      internalID: 1251658897984723451
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_19
+      rect:
+        serializedVersion: 2
+        x: 452
+        y: 188
+        width: 68
+        height: 156
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bcaf10db862799200800000000000000
+      internalID: 187306653685775051
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_20
+      rect:
+        serializedVersion: 2
+        x: 540
+        y: 188
+        width: 68
+        height: 160
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a8b3cea40741946b0800000000000000
+      internalID: -5311691812980900982
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_21
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 4
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c6b07e09d23e961e0800000000000000
+      internalID: -2203980757777052820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_22
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 4
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bf3a676499131b1b0800000000000000
+      internalID: -5642674323736583173
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_23
+      rect:
+        serializedVersion: 2
+        x: 184
+        y: 4
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0aed2160e025c08f0800000000000000
+      internalID: -572992832397975904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_24
+      rect:
+        serializedVersion: 2
+        x: 272
+        y: 4
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2943a19574d1448b0800000000000000
+      internalID: -5168974280039713646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_25
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 4
+        width: 68
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 113fe0f36525b8d60800000000000000
+      internalID: 7893493302275535633
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_26
+      rect:
+        serializedVersion: 2
+        x: 448
+        y: 4
+        width: 68
+        height: 156
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4d826d72a5f922d30800000000000000
+      internalID: 4405258595085986004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Student_Idle_27
+      rect:
+        serializedVersion: 2
+        x: 536
+        y: 4
+        width: 68
+        height: 160
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5266ce578cf5fe470800000000000000
+      internalID: 8426058742410012197
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+  spritePackingTag: 
+  pSDRemoveMatte: 0
+  pSDShowRemoveMatteOption: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

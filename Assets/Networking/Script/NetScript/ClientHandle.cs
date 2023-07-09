@@ -18,6 +18,17 @@ public class ClientHandle : MonoBehaviour
         Client.Instance.MyUdp.Connect(((IPEndPoint)Client.Instance.MyTcp.Socket.Client.LocalEndPoint).Port);
     }
 
+    public static void GoToCharacterSelect(Packet _Packet)
+    {
+        Debug.Log("receive ChracterScene1");
+
+        bool IsGotoCharacter = _Packet.ReadBool();
+
+        Debug.Log("receive ChracterScene2");
+
+        UIManager.Instance.IsGotoCharacter(IsGotoCharacter);
+    }
+
     public static void SpawnPlayer(Packet _Packet)
     {
         int _Id = _Packet.ReadInt();
@@ -26,6 +37,15 @@ public class ClientHandle : MonoBehaviour
         Quaternion _Rotation = _Packet.ReadQuaternion();
 
         NetGameManager.Instance.SpawnPlayer(_Id, _UserName, _Position, _Rotation);
+    }
+
+    public static void ReceiveSelectData(Packet _Packet)
+    {
+        int _Id = _Packet.ReadInt();
+        int Type = _Packet.ReadInt();
+
+        NetGameManager.Players[_Id].Type = Type;
+        UIManager.Instance.SetCharacterName(Type, $"Player {_Id}");
     }
 
     public static void PlayerPosition(Packet _Packet)

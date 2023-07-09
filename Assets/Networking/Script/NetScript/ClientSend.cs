@@ -24,7 +24,27 @@ public class ClientSend : MonoBehaviour
         using(Packet _Packet = new Packet((int)ClientPackets.welcomeReceived))
         {
             _Packet.Write(Client.Instance.MyId);
-            _Packet.Write(UIManager.Instance.UserName.text);
+            _Packet.Write("");
+
+            SendTcpData(_Packet);
+        }
+    }
+
+    public static void waitOtherPlayer()
+    {
+        using (Packet _Packet = new Packet((int)ClientPackets.waitOtherPlayer))
+        {
+            _Packet.Write(1);
+
+            SendTcpData(_Packet);
+        }
+    }
+
+    public static void CharacterSelect(int Type)
+    {
+        using (Packet _Packet = new Packet((int)ClientPackets.selectCharacter))
+        {
+            _Packet.Write(Type);
 
             SendTcpData(_Packet);
         }
