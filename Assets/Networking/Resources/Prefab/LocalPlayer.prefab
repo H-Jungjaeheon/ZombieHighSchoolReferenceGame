@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7276606108964804654}
   - component: {fileID: 7276606108964804649}
   - component: {fileID: 3473541852465159850}
-  - component: {fileID: 934235048078215838}
+  - component: {fileID: -382675124037140637}
   m_Layer: 0
   m_Name: LocalPlayer
   m_TagString: Untagged
@@ -73,15 +73,15 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 48e93eef0688c4a259cb0eddcd8661f7, type: 3}
-  m_Color: {r: 0, g: 1, b: 0.27643752, a: 1}
+  m_Sprite: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
   m_Size: {x: 1, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!114 &3473541852465159850
@@ -98,10 +98,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Id: 0
   UserName: 
+  Type: 0
   Renderer: {fileID: 7276606108964804649}
   Health: 0
   MaxHealth: 100
---- !u!114 &934235048078215838
+  ItemCount: 0
+--- !u!114 &-382675124037140637
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -110,6 +112,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 7276606108964804648}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f664bdb58e353754883cd1ec7c7dfb32, type: 3}
+  m_Script: {fileID: 11500000, guid: c09357f3936ba594e8dae1906df808be, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  curState: 0
+  rangeInEnemy: []
+  speed: 0
+  moveVectors: []
+  isWallInPath: 0
+  moveTargetPos: {x: 0, y: 0}

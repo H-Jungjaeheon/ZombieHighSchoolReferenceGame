@@ -6,6 +6,8 @@ public class PlayerManager : MonoBehaviour
 {
     public int Id;
     public string UserName;
+    public int Type;
+
     public SpriteRenderer Renderer;
 
     public float Health;
@@ -13,12 +15,25 @@ public class PlayerManager : MonoBehaviour
 
     public int ItemCount = 0;
 
+    private void Awake()
+    {
+        DontDestroyOnLoad(this);
+    }
 
     public void Initialize(int _Id, string _UserName)
     {
         Id = _Id;
         UserName = _UserName;
         Health = MaxHealth;
+    }
+
+    public void MyPlayerSetting()
+    {
+        if (this.gameObject.TryGetComponent(out Player _MyPlayer))
+        {
+            _MyPlayer.MyId = Id;
+            _MyPlayer.MyType = Type;
+        }
     }
 
     public void SetHealth(float _Health)
