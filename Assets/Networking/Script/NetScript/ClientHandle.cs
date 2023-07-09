@@ -46,6 +46,13 @@ public class ClientHandle : MonoBehaviour
 
         NetGameManager.Players[_Id].Type = Type;
         UIManager.Instance.SetCharacterName(Type, $"Player {_Id}");
+
+        NetGameManager.Players[_Id].MyPlayerSetting();
+    }
+
+    public static void DoneSelect(Packet _Packet)
+    {
+        UIManager.Instance.StartShowScene();
     }
 
     public static void PlayerPosition(Packet _Packet)

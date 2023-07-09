@@ -10,6 +10,11 @@ public enum CurState
 
 public class Player : MonoBehaviour
 {
+    #region 서버
+    public int MyId;
+    public int MyType;
+    #endregion
+
     [HideInInspector]
     [Tooltip("플레이어 상태")]
     public CurState curState;

@@ -25,6 +25,7 @@ namespace GameServer
         //My Add Packet
         goToCharacterSelect,
         receiveSelectData,
+        doneSelect,
     }
 
     /// <summary>클라이언트에서 서버로 전송한다.</summary>

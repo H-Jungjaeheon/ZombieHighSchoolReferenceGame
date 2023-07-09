@@ -8,10 +8,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Title.unity
     guid: 809957007dd34bc4a9493f53c0b46b65
-  - enabled: 0
-    path: Assets/Networking/Scene/Test.unity
-    guid: ab050ad1c1862cc4eb718e1951fa39b2
+  - enabled: 1
+    path: Assets/Scenes/StartShowScene.unity
+    guid: 848cb824c7dd26144a40aac927dfb5f0
   - enabled: 1
     path: Assets/Scenes/InGame.unity
     guid: 0ab395f20a18eee4b8c541abc0bb639f
+  - enabled: 0
+    path: Assets/Networking/Scene/Test.unity
+    guid: ab050ad1c1862cc4eb718e1951fa39b2
   m_configObjects: {}

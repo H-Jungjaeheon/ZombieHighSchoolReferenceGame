@@ -294,6 +294,7 @@ public class Client : MonoBehaviour
             {(int)ServerPackets.projectileExploded, ClientHandle.ProjectileExploded },
             {(int)ServerPackets.goToCharacterSelect, ClientHandle.GoToCharacterSelect },
             {(int)ServerPackets.receiveSelectData, ClientHandle.ReceiveSelectData },
+            {(int)ServerPackets.doneSelect, ClientHandle.DoneSelect },
         };
         Debug.Log("Initialized Packet");
     }

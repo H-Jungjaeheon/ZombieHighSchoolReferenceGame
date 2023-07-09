@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public enum Fade
 {
@@ -95,11 +96,26 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void StartShowScene()
+    {
+        FadeState = Fade.In;
+
+        StartCoroutine(ChangeStartShowScene());
+    }
+
     private IEnumerator WaitOtherPlayer()
     {
         yield return new WaitForSeconds(2.3f);
 
         OtherPlayerText.SetActive(true);
         ClientSend.waitOtherPlayer();
+        yield break;
+    }
+
+    private IEnumerator ChangeStartShowScene()
+    {
+        yield return new WaitForSeconds(2.3f);
+
+        SceneManager.LoadScene("StartShowScene");
     }
 }
