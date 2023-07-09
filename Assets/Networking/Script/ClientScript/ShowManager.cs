@@ -8,18 +8,31 @@ public class ShowManager : MonoBehaviour
 {
     [Header("ServerState")]
     public static bool ServerStart = false;
+
     public bool BloomOut = false;
+    public bool WaitPlayer = false;
+    public bool GirlEnd = false;
+    public bool StudentEnd = false;
 
     [Header("Camera")]
     public List<Vector3> CameraPoint = new List<Vector3>();
     public float CameraSize = 10.0f;
     public float CameraMoveSpeed = 5.0f;
 
+    [Header("Object")]
+    public GameObject Bokdo;
+    public GameObject GirlRoom;
+    public GameObject StudentRoom;
+
     [Header("Move Point")]
     public Vector3 GirlEndPoint;
     public Vector3 StudentEndPoint;
     public Vector3 GirlStartPoint;
     public Vector3 StudentStartPoint;
+    public Vector3 GirlBokdoStartPoint;
+    public Vector3 StudentBokdoStartPoint;
+    public Vector3 GirlBokdoEndPoint;
+    public Vector3 StudentBokdoEndPoint;
 
     [Header("Player Attribute")]
     public float GirlSpeed;
@@ -36,6 +49,10 @@ public class ShowManager : MonoBehaviour
     [Header("Speech Wow")]
     public GameObject GirlSpeechWow;
     public GameObject StudentSpeechWow;
+
+    [Header("Speech Happy")]
+    public GameObject GirlSpeechHappy;
+    public GameObject StudentSpeechHappy;
 
     [Header("Animator")]
     public Animator GirlAnimator;
@@ -178,6 +195,20 @@ public class ShowManager : MonoBehaviour
 
         Girl.gameObject.SetActive(false);
 
+        while (WaitPlayer == false)
+            yield return null;
+
+        GirlLeftWalk();
+        while (Girl.transform.position.x != GirlBokdoEndPoint.x)
+        {
+            yield return null;
+            Girl.transform.position = Vector3.MoveTowards(Girl.transform.position, GirlBokdoEndPoint, GirlSpeed * Time.deltaTime);
+        }
+
+        GirlEnd = true;
+        GirlLeftIdle();
+
+
         yield break;
     }
 
@@ -224,6 +255,44 @@ public class ShowManager : MonoBehaviour
         UIManager.Instance.FadeImage.gameObject.SetActive(true);
         UIManager.Instance.FadeState = Fade.In;
         yield return new WaitForSeconds(2.5f);
+
+        Camera.main.gameObject.transform.position = CameraPoint[0];
+
+        GirlLeftIdle();
+        Girl.transform.position = GirlBokdoStartPoint;
+        Girl.SetActive(true);
+        StudentRightIdle();
+        Student.transform.position = StudentBokdoStartPoint;
+        Student.SetActive(true);
+
+        GirlRoom.SetActive(false);
+        StudentRoom.SetActive(false);
+        Bokdo.SetActive(true);
+
+        UIManager.Instance.FadeState = Fade.Out;
+        yield return new WaitForSeconds(2.5f);
+
+        WaitPlayer = true;
+
+        StudentRightWalk();
+        while(Student.transform.position.x != StudentBokdoEndPoint.x)
+        {
+            yield return null;
+            Student.transform.position = Vector3.MoveTowards(Student.transform.position, StudentBokdoEndPoint, StudentSpeed * Time.deltaTime);
+        }
+
+        StudentEnd = true;
+        StudentRightIdle();
+
+        while (GirlEnd == false && StudentEnd == false)
+            yield return null;
+
+        yield return new WaitForSeconds(0.8f);
+        GirlSpeechHappy.SetActive(true);
+        StudentSpeechHappy.SetActive(true);
+        yield return new WaitForSeconds(0.5f);
+
+        UIManager.Instance.FadeState = Fade.In;
 
         yield break;
     }
